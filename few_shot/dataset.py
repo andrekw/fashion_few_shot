@@ -68,14 +68,15 @@ class OmniglotDataset(object):
         
         def prepare_outputs(x_s, y_s, x_q, y_q):
             return (
-                decode_image_tensor(x_s),
+                (decode_image_tensor(x_s),
                 tf.one_hot(y_s, self.n_classes),
-                decode_image_tensor(x_q),
+                decode_image_tensor(x_q)),
                 tf.one_hot(y_q, self.n_classes)
                 )
         
         ds = tf.data.Dataset.from_generator(lambda: self,
-                                            (tf.string, tf.int32, tf.string, tf.int32))
+                                            (tf.string, tf.int32, tf.string, tf.int32)) #,
+
         ds = ds.map(prepare_outputs)
 
         return ds.make_one_shot_iterator()
