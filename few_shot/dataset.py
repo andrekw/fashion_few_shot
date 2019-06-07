@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import sklearn.preprocessing as skp
+import tensorflow as tf
 
 class OmniglotDataset(object):
     """Encapsulates the logic to build few-shot episodes from the Omniglot dataset."""
@@ -17,6 +18,8 @@ class OmniglotDataset(object):
 
         self.df = pd.DataFrame.from_records(self._scan_path(path))
         self.df['class_id'] = skp.LabelEncoder().fit_transform(self.df.class_name)
+
+        self.n_classes = self.df.class_id.nunique()
 
     @staticmethod
     def _scan_path(path):
@@ -57,4 +60,23 @@ class OmniglotDataset(object):
                 query_y += k_query['class_id'].tolist()
 
             yield support_X, support_y, query_X, query_y
-                
+
+    def tf_iterator(self):
+        def decode_image_tensor(t):
+            """Load a list of images at once."""
+            return tf.map_fn(lambda x: tf.image.decode_image(tf.read_file(x), dtype=tf.float32), t, tf.float32)
+        
+        def prepare_outputs(x_s, y_s, x_q, y_q):
+            return (
+                decode_image_tensor(x_s),
+                tf.one_hot(y_s, self.n_classes),
+                decode_image_tensor(x_q),
+                tf.one_hot(y_q, self.n_classes)
+                )
+        
+        ds = tf.data.Dataset.from_generator(lambda: self,
+                                            (tf.string, tf.int32, tf.string, tf.int32))
+        ds = ds.map(prepare_outputs)
+
+        return ds.make_one_shot_iterator()
+        
