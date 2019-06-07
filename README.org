@@ -1,0 +1,5 @@
+* starting with omniglot dataset
+** using oscar's repo's script for dataset prep 
+- a bit tricky getting it to run, instructions were not clear
+- just add his copyright
+** prepare a data generator
