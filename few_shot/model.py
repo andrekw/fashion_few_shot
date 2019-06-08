@@ -1,6 +1,6 @@
 import tensorflow as tf
 tf.enable_eager_execution()
-from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, MaxPooling2D, Input, Flatten, Lambda
+from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, MaxPooling2D, Input, Flatten, Lambda, Softmax
 from tensorflow.keras.models import Model
 
 from .dataset import OmniglotDataset
@@ -45,13 +45,19 @@ query_embedding = embedding_model(query_in)
 
 class_centroids = Lambda(lambda x: tf.matmul(x[0], x[1], transpose_a=True) / N_SHOT)([support_embedding, support_labels])
 
-distances = Lambda(lambda x: tf.reduce_sum(
+distances = Lambda(lambda x: -tf.reduce_sum(
     tf.squared_difference(tf.expand_dims(x[0], axis=-1), x[1]), axis=1))([query_embedding, class_centroids])
+# negate distance because we want to have the smallest distance as the max (softmin?)
 
-model = Model(inputs=[support_in, support_labels, query_in], outputs=distances)
+predictions = Softmax()(distances)
+
+model = Model(inputs=[support_in, support_labels, query_in], outputs=predictions)
 
 opt = tf.keras.optimizers.Adam(lr=1e-3)
-model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-history = model.fit(train_it, steps_per_epoch=2000, shuffle=False, callbacks=[
-    tf.keras.callbacks.LearningRateScheduler(lambda i, lr: lr if i % 2000 else lr * 0.5)])
+history = model.fit(train_it,
+                    epochs=500,
+                    steps_per_epoch=2000,
+                    shuffle=False,
+                    callbacks=[tf.keras.callbacks.LearningRateScheduler(lambda i, lr: lr if i % 2000 else lr * 0.5)])
