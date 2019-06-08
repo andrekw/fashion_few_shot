@@ -5,3 +5,5 @@
 ** prepare a data generator
 - getting things in order was tricky, but i think my implementation is more efficient
 - tf.data with keras is a pain, better use keras' native sequence stuff
+** refactoring
+- make double extra sure not to have anything not keras as arguments to layers. not even ints or floats. wrap *everything* in a Lambda layer

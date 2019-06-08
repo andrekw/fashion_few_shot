@@ -1,23 +1,15 @@
 from typing import Tuple
 
 import tensorflow as tf
-tf.enable_eager_execution()
+
 from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, MaxPooling2D, Input, Flatten, Lambda, Softmax, Layer, TimeDistributed
 from tensorflow.keras.models import Model
 
-from few_shot.dataset import OmniglotDataset
 
 N_SHOT = 1
 K_WAY = 60
 N_QUERIES = 5
 
-train_ds = OmniglotDataset('datasets/Omniglot/images_background', 1000000, N_SHOT, K_WAY, N_QUERIES)
-train_it = train_ds.tf_iterator()
-
-n_classes = train_ds.df.class_id.nunique()
-
-# first retrieve embeddings
-img_shape = (28, 28, 1)
 
 def build_embedding_model(input_layer: Layer, n_convs=4):
     """Builds an embedding model as described in the Prototypical Networks paper."""
@@ -80,14 +72,3 @@ def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_mod
     model = Model(inputs=[support_in, support_labels, query_in], outputs=predictions)
 
     return model
-
-model = build_prototype_network(N_SHOT, K_WAY, N_QUERIES, img_shape)
-
-opt = tf.keras.optimizers.Adam(lr=1e-3)
-model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-
-history = model.fit(train_it,
-                    epochs=500,
-                    steps_per_epoch=2000,
-                    shuffle=False,
-                    callbacks=[tf.keras.callbacks.LearningRateScheduler(lambda i, lr: lr if i % 2000 else lr * 0.5)])
