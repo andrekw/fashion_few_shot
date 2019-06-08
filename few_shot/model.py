@@ -2,7 +2,7 @@ from typing import Tuple
 
 import tensorflow as tf
 tf.enable_eager_execution()
-from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, MaxPooling2D, Input, Flatten, Lambda, Softmax, Layer
+from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, MaxPooling2D, Input, Flatten, Lambda, Softmax, Layer, TimeDistributed
 from tensorflow.keras.models import Model
 
 from few_shot.dataset import OmniglotDataset
@@ -48,26 +48,27 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     """Computes the negative squared euclidean distance between each query point and each class centroid."""
 
     # we need to expand the embedding tensor in order for broadcasting to work
-    # our query tensor shape is (q_queries, embedding_dims), and the centroids (embedding_dims, n_classes)
-    # our output should be (q_queries, embedding_dims, n_classes)
+    # our query tensor shape is (batch, q_queries, embedding_dims), and the centroids (batch, embedding_dims, k_way)
+    # our output should be (batch, q_queries, embedding_dims, k_way)
     query_embedding = tf.expand_dims(query_embedding, axis=-1)
     sq_distance = tf.squared_difference(query_embedding, class_centroids)
 
     # reduce over the embedding dimension to find the distance between each query and class centroid
     # we return the negative distance since we want to activate the closest centroid, not the farthest (softmin?)
-    return -tf.reduce_sum(sq_distance, axis=1)
+    return -tf.reduce_sum(sq_distance, axis=-2)
 
 
-def build_prototype_network(n_shot, k_way, n_queries, n_classes, input_shape, embedding_model_fn=build_embedding_model):
+def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model):
     embedding_in = Input(shape=input_shape)
     embedding_model = embedding_model_fn(embedding_in)
     
-    support_in = Input(shape=input_shape, name='support_input')
-    query_in = Input(shape=input_shape, name='query_input')
-    support_labels = Input(shape=(k_way,), name='support_labels')
-    
-    support_embedding = embedding_model(support_in)
-    query_embedding = embedding_model(query_in)
+    support_in = Input(shape=(n_shot * k_way,) + input_shape, name='support_input')
+    query_in = Input(shape=(n_queries * k_way,) + input_shape, name='query_input')
+    support_labels = Input(shape=(n_shot * k_way, k_way), name='support_labels')
+
+    # TimeDistributed is a convenient way to apply the same embedding model to high-dimensional batches
+    support_embedding = TimeDistributed(embedding_model)(support_in)
+    query_embedding = TimeDistributed(embedding_model)(query_in)
     
     # Lambda layers only accept a sequence of tensors as input
     class_centroids = Lambda(lambda x: centroids(*x, n_shot))((support_embedding, support_labels))
@@ -80,8 +81,8 @@ def build_prototype_network(n_shot, k_way, n_queries, n_classes, input_shape, em
 
     return model
 
-model = build_prototype_network(N_SHOT, K_WAY, N_QUERIES, n_classes, img_shape)
-    
+model = build_prototype_network(N_SHOT, K_WAY, N_QUERIES, img_shape)
+
 opt = tf.keras.optimizers.Adam(lr=1e-3)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 

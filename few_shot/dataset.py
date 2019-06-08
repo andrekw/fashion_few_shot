@@ -79,5 +79,5 @@ class OmniglotDataset(object):
 
         ds = ds.map(prepare_outputs, num_parallel_calls=tf.data.experimental.AUTOTUNE).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
-        return ds.make_one_shot_iterator()
+        return ds.batch(1).make_one_shot_iterator()
         
