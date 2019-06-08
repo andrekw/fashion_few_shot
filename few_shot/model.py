@@ -9,10 +9,10 @@ N_SHOT = 1
 K_WAY = 60
 N_QUERIES = 5
 
-ds = OmniglotDataset('datasets/Omniglot', 100, N_SHOT, K_WAY, N_QUERIES)
-it = ds.tf_iterator()
+train_ds = OmniglotDataset('datasets/Omniglot/images_background', 1000000, N_SHOT, K_WAY, N_QUERIES)
+train_it = train_ds.tf_iterator()
 
-n_classes = ds.df.class_id.nunique()
+n_classes = train_ds.df.class_id.nunique()
 
 # first retrieve embeddings
 embedding_input = Input(shape=(28, 28, 1))
@@ -52,3 +52,6 @@ model = Model(inputs=[support_in, support_labels, query_in], outputs=distances)
 
 opt = tf.keras.optimizers.Adam(lr=1e-3)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+
+history = model.fit(train_it, steps_per_epoch=2000, shuffle=False, callbacks=[
+    tf.keras.callbacks.LearningRateScheduler(lambda i, lr: lr if i % 2000 else lr * 0.5)])

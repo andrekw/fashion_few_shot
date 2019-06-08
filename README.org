@@ -4,4 +4,4 @@
 - just add his copyright
 ** prepare a data generator
 - getting things in order was tricky, but i think my implementation is more efficient
-- put channels in correct order
+- tf.data with keras is a pain, better use keras' native sequence stuff
