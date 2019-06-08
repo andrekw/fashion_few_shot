@@ -64,7 +64,7 @@ def build_prototype_network(n_shot, k_way, n_queries, n_classes, input_shape, em
     
     support_in = Input(shape=input_shape, name='support_input')
     query_in = Input(shape=input_shape, name='query_input')
-    support_labels = Input(shape=(n_classes,), name='support_labels')
+    support_labels = Input(shape=(k_way,), name='support_labels')
     
     support_embedding = embedding_model(support_in)
     query_embedding = embedding_model(query_in)

@@ -69,9 +69,9 @@ class OmniglotDataset(object):
         def prepare_outputs(x_s, y_s, x_q, y_q):
             return (
                 (decode_image_tensor(x_s),
-                tf.one_hot(y_s, self.n_classes),
+                tf.one_hot(y_s, self.k_way),
                 decode_image_tensor(x_q)),
-                tf.one_hot(y_q, self.n_classes)
+                tf.one_hot(y_q, self.k_way)
                 )
         
         ds = tf.data.Dataset.from_generator(lambda: self,
