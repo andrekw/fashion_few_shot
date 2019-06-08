@@ -57,26 +57,31 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     # we return the negative distance since we want to activate the closest centroid, not the farthest (softmin?)
     return -tf.reduce_sum(sq_distance, axis=1)
 
-embedding_in = Input(shape=img_shape)
-embedding_model = build_embedding_model(embedding_in)
 
+def build_prototype_network(n_shot, k_way, n_queries, n_classes, input_shape, embedding_model_fn=build_embedding_model):
+    embedding_in = Input(shape=input_shape)
+    embedding_model = embedding_model_fn(embedding_in)
+    
+    support_in = Input(shape=input_shape, name='support_input')
+    query_in = Input(shape=input_shape, name='query_input')
+    support_labels = Input(shape=(n_classes,), name='support_labels')
+    
+    support_embedding = embedding_model(support_in)
+    query_embedding = embedding_model(query_in)
+    
+    # Lambda layers only accept a sequence of tensors as input
+    class_centroids = Lambda(lambda x: centroids(*x, n_shot))((support_embedding, support_labels))
+    
+    negative_distances = Lambda(lambda x: negative_distance(*x))((query_embedding, class_centroids))
+    
+    predictions = Softmax()(negative_distances)
+    
+    model = Model(inputs=[support_in, support_labels, query_in], outputs=predictions)
 
-support_in = Input(shape=img_shape, name='support_input')
-query_in = Input(shape=img_shape, name='query_input')
-support_labels = Input(shape=(n_classes,), name='support_labels')
+    return model
 
-support_embedding = embedding_model(support_in)
-query_embedding = embedding_model(query_in)
-
-# Lambda layers only accept a sequence of tensors as input
-class_centroids = Lambda(lambda x: centroids(*x, N_SHOT))((support_embedding, support_labels))
-
-negative_distances = Lambda(lambda x: negative_distance(*x))((query_embedding, class_centroids))
-
-predictions = Softmax()(negative_distances)
-
-model = Model(inputs=[support_in, support_labels, query_in], outputs=predictions)
-
+model = build_prototype_network(N_SHOT, K_WAY, N_QUERIES, n_classes, img_shape)
+    
 opt = tf.keras.optimizers.Adam(lr=1e-3)
 model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
