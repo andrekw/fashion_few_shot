@@ -4,7 +4,11 @@ tf.enable_eager_execution()
 
 from few_shot.model import centroids
 
-def test_centroids():
+@pytest.mark.parametrize("eps_per_batch", range(1, 4))
+@pytest.mark.parametrize("n_shot", [1, 5])
+@pytest.mark.parametrize("n_classes", [5, 15, 60])
+@pytest.mark.parametrize("embedding_dims", [60, 300])
+def test_centroids(eps_per_batch, n_shot, n_classes, embedding_dims):
     embedding_dims = 4
     n_classes = 5
     n_shot = 1
