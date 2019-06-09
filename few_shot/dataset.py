@@ -1,47 +1,60 @@
 import os
 
+from typing import Callable, List, Optional, Tuple
+
 import numpy as np
 import pandas as pd
 import sklearn.preprocessing as skp
 import tensorflow as tf
 
-class OmniglotDataset(object):
-    """Encapsulates the logic to build few-shot episodes from the Omniglot dataset."""
 
-    def __init__(self, path, episodes_per_epoch, n_shot, k_way, q_queries, n_tasks=1):
-        self.path = path
-        self.episodes_per_epoch = episodes_per_epoch
+def create_omniglot_df(path: str) -> pd.DataFrame:
+    """Creates a DataFrame for Omniglot data based on its directory structure.
+
+    :param path: path to the base folder of the processed Omniglot dataset.
+    """
+    samples = []
+    for dirpath, dirnames, filenames in os.walk(path):
+        if not filenames:
+            continue
+        *_, alphabet, character = dirpath.split(os.path.sep)
+        class_name = f'{alphabet}.{character}'
+        for f in filenames:
+            samples.append(
+                {
+                    'class_name': class_name,
+                    'alphabet': alphabet,
+                    'character': character,
+                    'filepath': os.path.abspath(os.path.join(dirpath, f))
+                })
+
+    return pd.DataFrame.from_records(samples)
+
+
+class FewShotEpisodeGenerator(object):
+
+    def __init__(self, df: pd.DataFrame, episodes: int, n_shot: int, k_way: int, q_queries: int, batch_size: int = 1):
+        """Encapsulates the logic to build few-shot episodes from the Omniglot dataset.
+
+        :param df: DataFrame with class_name and filepath columns
+        :param episodes: episodes to generate
+        :param n_shot: samples per class in support set
+        :param k_way: classes in both support and query sets
+        :param q_queries: samples per class in query set
+        :param batch_size: episodes per batch
+        """
+
+        self.df = df
+        self.episodes = episodes
         self.n_shot = n_shot
         self.k_way = k_way
         self.q_queries = q_queries
-        self.n_tasks = n_tasks
+        self.batch_size = batch_size
 
-        self.df = pd.DataFrame.from_records(self._scan_path(path))
         self.df['class_id'] = skp.LabelEncoder().fit_transform(self.df.class_name)
 
-        self.n_classes = self.df.class_id.nunique()
-
-    @staticmethod
-    def _scan_path(path):
-        samples = []
-        for dirpath, dirnames, filenames in os.walk(path):
-            if not filenames:
-                continue
-            *_, alphabet, character = dirpath.split(os.path.sep)
-            class_name = f'{alphabet}.{character}'
-            for f in filenames:
-                samples.append(
-                    {
-                        'class_name': class_name,
-                        'alphabet': alphabet,
-                        'character': character,
-                        'filepath': os.path.abspath(os.path.join(dirpath, f))
-                    })
-
-        return samples
-
-    def __iter__(self):
-        for _ in range(self.episodes_per_epoch):
+    def __iter__(self) -> Tuple[List[str], List[int], List[str], List[int]]:
+        for _ in range(self.episodes):
             classes = np.random.choice(self.df.class_id.unique(), size=self.k_way, replace=False)
             support_X = []
             support_y = []
@@ -61,10 +74,23 @@ class OmniglotDataset(object):
 
             yield support_X, support_y, query_X, query_y
 
-    def tf_iterator(self):
+    @staticmethod
+    def image_pipeline(path_tensor: tf.Tensor) -> tf.Tensor:
+        """Loads and decodes an image from a path string."""
+
+        return tf.image.decode_image(tf.read_file(path_tensor), dtype=tf.float32)
+    
+    def tf_iterator(self, image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
+        """Create a tensorflow iterator of batches of episodes from data.
+
+        :param image_pipeline: a function mapping from a filename to an image data tensor.
+        """
+        if not image_pipeline:
+            image_pipeline = self.image_pipeline
+
         def decode_image_tensor(t):
             """Load a list of images at once."""
-            return tf.map_fn(lambda x: tf.image.decode_image(tf.read_file(x), dtype=tf.float32), t, tf.float32)
+            return tf.map_fn(image_pipeline, t, tf.float32)
         
         def prepare_outputs(x_s, y_s, x_q, y_q):
             return (
@@ -77,7 +103,9 @@ class OmniglotDataset(object):
         ds = tf.data.Dataset.from_generator(lambda: self,
                                             (tf.string, tf.int32, tf.string, tf.int32)) #,
 
-        ds = ds.map(prepare_outputs, num_parallel_calls=tf.data.experimental.AUTOTUNE).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+        ds = ds.map(prepare_outputs,
+                    num_parallel_calls=tf.data.experimental.AUTOTUNE
+        ).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
-        return ds.batch(1).make_one_shot_iterator()
+        return ds.batch(self.batch_size).make_one_shot_iterator()
         
