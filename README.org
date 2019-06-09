@@ -6,7 +6,7 @@ In this repository I will experiment with applying few-shot learning to the [[ht
 
 You will need Python >= 3.6, pipenv and preferably access to a GPU. 
 
-The dataset should be unzipped to `datasets/fashion-dataset`, i.e., after extraction you should have a `datasets/fashion-dataset/images` folder and a `datasets/fashion-dataset/styles.csv` file.
+The dataset should be unzipped to ~datasets/fashion-dataset~, i.e., after extraction you should have a ~datasets/fashion-dataset/images~ folder and a ~datasets/fashion-dataset/styles.csv~ file.
 
 ** Prototypical Networks
 
@@ -15,9 +15,9 @@ This implementation of [[https://arxiv.org/abs/1703.05175][Prototypical Networks
 *** Omniglot
 
 As a sanity check for my implementation, I've ran a 5-way, 1-shot experiment on [[https://github.com/brendenlake/omniglot/blob/master/python/images_evaluation.zip][Omniglot]] and managed to replicate the results.
-First download the dataset and process it with Oscar's `prepare_omniglot.py`.
-Place the processed dataset under `datasets/Omniglot`.
-In order to run the experiment, call `pipenv run python -m few_shot.experiments.omniglot`.
+First download the dataset and process it with Oscar's ~prepare_omniglot.py~.
+Place the processed dataset under ~datasets/Omniglot~.
+In order to run the experiment, call ~pipenv run python -m few_shot.experiments.omniglot~.
 This takes around 20 minutes to train and evaluate on a GeForce 960.
 
 *** TODO Reference model
