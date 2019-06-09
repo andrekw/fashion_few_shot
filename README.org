@@ -1,9 +1,28 @@
-* starting with omniglot dataset
-** using oscar's repo's script for dataset prep 
-- a bit tricky getting it to run, instructions were not clear
-- just add his copyright
-** prepare a data generator
-- getting things in order was tricky, but i think my implementation is more efficient
-- tf.data with keras is a pain, better use keras' native sequence stuff
-** refactoring
-- make double extra sure not to have anything not keras as arguments to layers. not even ints or floats. wrap *everything* in a Lambda layer
+* Few Shot learning for fashion
+
+In this repository I will experiment with applying few-shot learning to the [[https://www.kaggle.com/paramaggarwal/fashion-product-images-dataset/version/1][Kaggle fashion dataset]] using TensorFlow and Keras.
+
+** Setup
+
+You will need Python >= 3.6, pipenv and preferably access to a GPU. 
+
+The dataset should be unzipped to `datasets/fashion-dataset`, i.e., after extraction you should have a `datasets/fashion-dataset/images` folder and a `datasets/fashion-dataset/styles.csv` file.
+
+** Prototypical Networks
+
+This implementation of [[https://arxiv.org/abs/1703.05175][Prototypical Networks for Few-shot Learning]] by Snell, Swersky and Zemel is heavily inspired by [[https://github.com/oscarknagg/few-shot/][Oscar Knagg's implementation]].
+
+*** Omniglot
+
+As a sanity check for my implementation, I've ran a 5-way, 1-shot experiment on [[https://github.com/brendenlake/omniglot/blob/master/python/images_evaluation.zip][Omniglot]] and managed to replicate the results.
+First download the dataset and process it with Oscar's `prepare_omniglot.py`.
+Place the processed dataset under `datasets/Omniglot`.
+In order to run the experiment, call `pipenv run python -m few_shot.experiments.omniglot`.
+This takes around 20 minutes to train and evaluate on a GeForce 960.
+
+*** TODO Reference model
+
+**** TODO Image pipeline
+
+**** TODO Train / test split
+**** TODO Run the same embedding model as in the paper.
