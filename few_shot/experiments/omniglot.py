@@ -32,7 +32,7 @@ def run_omniglot_experiment():
     test_ds = FewShotEpisodeGenerator(create_omniglot_df('datasets/Omniglot/images_evaluation'),
                                        1000000,
                                        n_shot,
-                                       k_way_train,
+                                       k_way_test,
                                        n_queries_test)
     test_it = test_ds.tf_iterator()
     
