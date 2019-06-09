@@ -1,7 +1,7 @@
 import pytest
 import tensorflow as tf
 
-from few_shot.model import centroids
+from few_shot.model import build_prototype_network, centroids
 
 
 tf.enable_eager_execution()
@@ -51,3 +51,13 @@ def test_centroids(eps_per_batch, n_shot, n_classes, embedding_dims):
         assert pytest.approx(result.numpy()) == expected_centroids.numpy()
         # check shape as well: one centroid per class per episode (class v. embedding transposed)
         assert result.shape.dims == [eps_per_batch, embedding_dims, n_classes]
+
+
+@pytest.mark.parametrize('n', [1, 5])
+@pytest.mark.parametrize('k', [5, 60])
+@pytest.mark.parametrize('q', [1, 5])
+@pytest.mark.parametrize('img_shape', [(28, 28, 1), (40, 30, 3)])
+def test_model(n, k, q, img_shape):
+    model = build_prototype_network(n, k, q, img_shape)
+    # we have q * k query points (q per class) and we compare its distance to each class centroid
+    assert model.output_shape == (None, q * k, k)
