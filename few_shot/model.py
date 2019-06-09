@@ -1,8 +1,7 @@
-from typing import Tuple
-
 import tensorflow as tf
 
-from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, MaxPooling2D, Input, Flatten, Lambda, Softmax, Layer, TimeDistributed
+from tensorflow.keras.layers import (Conv2D, BatchNormalization, ReLU, MaxPooling2D,
+                                     Input, Flatten, Lambda, Softmax, Layer, TimeDistributed)
 from tensorflow.keras.models import Model
 
 
@@ -32,7 +31,7 @@ def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int):
     support_embedding: layer containing the embeddings
     support_labels: one-hot encoded class labels
     n_shot: number of examples per class."""
-    
+
     return tf.matmul(support_embedding, support_labels, transpose_a=True) / n_shot
 
 
@@ -53,7 +52,7 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
 def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model):
     embedding_in = Input(shape=input_shape)
     embedding_model = embedding_model_fn(embedding_in)
-    
+
     support_in = Input(shape=(n_shot * k_way,) + input_shape, name='support_input')
     query_in = Input(shape=(n_queries * k_way,) + input_shape, name='query_input')
     support_labels = Input(shape=(n_shot * k_way, k_way), name='support_labels')
@@ -61,14 +60,14 @@ def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_mod
     # TimeDistributed is a convenient way to apply the same embedding model to high-dimensional batches
     support_embedding = TimeDistributed(embedding_model)(support_in)
     query_embedding = TimeDistributed(embedding_model)(query_in)
-    
+
     # Lambda layers only accept a sequence of tensors as input
     class_centroids = Lambda(lambda x: centroids(*x, n_shot))((support_embedding, support_labels))
-    
+
     negative_distances = Lambda(lambda x: negative_distance(*x))((query_embedding, class_centroids))
-    
+
     predictions = Softmax()(negative_distances)
-    
+
     model = Model(inputs=[support_in, support_labels, query_in], outputs=predictions)
 
     return model

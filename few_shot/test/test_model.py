@@ -1,10 +1,13 @@
 import pytest
 import tensorflow as tf
-tf.enable_eager_execution()
 
 from few_shot.model import centroids
 
-@pytest.mark.parametrize("eps_per_batch", range(1, 4))
+
+tf.enable_eager_execution()
+
+
+@pytest.mark.parametrize("eps_per_batch", [1, 4])
 @pytest.mark.parametrize("n_shot", [1, 5])
 @pytest.mark.parametrize("n_classes", [5, 15, 60])
 @pytest.mark.parametrize("embedding_dims", [60, 300])
