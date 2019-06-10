@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from tensorflow.keras.layers import (Conv2D, BatchNormalization, ReLU, MaxPooling2D,
+from tensorflow.keras.layers import (AvgPool1D, Conv2D, BatchNormalization, ReLU, MaxPooling2D,
                                      Input, Flatten, Lambda, Softmax, Layer, TimeDistributed)
 from tensorflow.keras.models import Model
 
@@ -24,25 +24,25 @@ def build_embedding_model(input_layer: Layer, n_convs=4):
     return model
 
 
-def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int):
-    """Computes class centroids as the class mean.
+def centroids(support_embedding: Layer, n_shot: int):
+    """Computes class centroids as the class mean from a batch of embeddings ordered by class.
 
     :params
     support_embedding: layer containing the embeddings
     support_labels: one-hot encoded class labels
-    n_shot: number of examples per class."""
+    """
 
-    return tf.matmul(support_embedding, support_labels, transpose_a=True) / n_shot
+    return AvgPool1D(pool_size=n_shot)(support_embedding)
 
 
 def negative_distance(query_embedding: Layer, class_centroids: Layer):
     """Computes the negative squared euclidean distance between each query point and each class centroid."""
 
     # we need to expand the embedding tensor in order for broadcasting to work
-    # our query tensor shape is (batch, q_queries, embedding_dims), and the centroids (batch, embedding_dims, k_way)
+    # our query tensor shape is (batch, q_queries, embedding_dims), and the centroids (batch, k_way, embedding_dims)
     # our output should be (batch, q_queries, embedding_dims, k_way)
     query_embedding = tf.expand_dims(query_embedding, axis=-1)
-    sq_distance = tf.squared_difference(query_embedding, class_centroids)
+    sq_distance = tf.squared_difference(query_embedding, tf.transpose(class_centroids, [0, 2, 1]))
 
     # reduce over the embedding dimension to find the distance between each query and class centroid
     # we return the negative distance since we want to activate the closest centroid, not the farthest (softmin?)
@@ -61,9 +61,9 @@ def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_mod
     support_embedding = TimeDistributed(embedding_model)(support_in)
     query_embedding = TimeDistributed(embedding_model)(query_in)
 
-    # Lambda layers only accept a sequence of tensors as input
-    class_centroids = Lambda(lambda x: centroids(*x, n_shot))((support_embedding, support_labels))
+    class_centroids = centroids(support_embedding, n_shot)
 
+    # Lambda layers only accept a sequence of tensors as input
     negative_distances = Lambda(lambda x: negative_distance(*x))((query_embedding, class_centroids))
 
     predictions = Softmax()(negative_distances)
