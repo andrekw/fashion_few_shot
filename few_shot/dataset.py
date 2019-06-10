@@ -79,7 +79,7 @@ class FewShotEpisodeGenerator(object):
         """Loads and decodes an image from a path string."""
 
         return tf.image.decode_image(tf.read_file(path_tensor), dtype=tf.float32)
-    
+
     def tf_iterator(self, image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
         """Create a tensorflow iterator of batches of episodes from data.
 
@@ -91,21 +91,20 @@ class FewShotEpisodeGenerator(object):
         def decode_image_tensor(t):
             """Load a list of images at once."""
             return tf.map_fn(image_pipeline, t, tf.float32)
-        
+
         def prepare_outputs(x_s, y_s, x_q, y_q):
             return (
                 (decode_image_tensor(x_s),
-                tf.one_hot(y_s, self.k_way),
-                decode_image_tensor(x_q)),
+                 tf.one_hot(y_s, self.k_way),
+                 decode_image_tensor(x_q)),
                 tf.one_hot(y_q, self.k_way)
                 )
-        
+
         ds = tf.data.Dataset.from_generator(lambda: self,
-                                            (tf.string, tf.int32, tf.string, tf.int32)) #,
+                                            (tf.string, tf.int32, tf.string, tf.int32))
 
         ds = ds.map(prepare_outputs,
-                    num_parallel_calls=tf.data.experimental.AUTOTUNE
-        ).prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+                    num_parallel_calls=tf.data.experimental.AUTOTUNE).prefetch(
+                        buffer_size=tf.data.experimental.AUTOTUNE)
 
         return ds.batch(self.batch_size).make_one_shot_iterator()
-        
