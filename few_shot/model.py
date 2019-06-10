@@ -40,13 +40,15 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
 
     # we need to expand the embedding tensor in order for broadcasting to work
     # our query tensor shape is (batch, q_queries, embedding_dims), and the centroids (batch, embedding_dims, k_way)
-    # our output should be (batch, q_queries, embedding_dims, k_way)
-    query_embedding = tf.expand_dims(query_embedding, axis=-1)
+    # our output should be (batch, q_queries, k_way, embedding_dims)
+    query_embedding = tf.expand_dims(query_embedding, axis=-2)
+    # we reshape the centroids to make broadcasting work
+    class_centroids = tf.expand_dims(tf.transpose(class_centroids, [0, 2, 1]), axis=-3)
     sq_distance = tf.squared_difference(query_embedding, class_centroids)
 
     # reduce over the embedding dimension to find the distance between each query and class centroid
     # we return the negative distance since we want to activate the closest centroid, not the farthest (softmin?)
-    return -tf.reduce_sum(sq_distance, axis=-2)
+    return -tf.reduce_sum(sq_distance, axis=-1)
 
 
 def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model):

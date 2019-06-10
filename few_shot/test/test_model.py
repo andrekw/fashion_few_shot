@@ -1,7 +1,7 @@
 import pytest
 import tensorflow as tf
 
-from few_shot.model import build_prototype_network, centroids
+from few_shot.model import build_prototype_network, centroids, negative_distance
 
 
 tf.enable_eager_execution()
@@ -69,10 +69,37 @@ def test_model(n, k, q, img_shape):
     assert model.output_shape == (None, q * k, k)
 
 
-@pytest.mark.parametrize('n', [1, 5])
+@pytest.mark.parametrize('eps_per_batch', [1, 5])
 @pytest.mark.parametrize('k', [5, 60])
 @pytest.mark.parametrize('q', [1, 5])
 @pytest.mark.parametrize('embedding_dims', [64, 128])
-def test_negative_distance(n, k, q, embedding_dims):
+def test_negative_distance(eps_per_batch, k, q, embedding_dims):
     with tf.device('CPU:0'):
-        pass
+        class_centroids = []
+        queries = []
+        expected_distances = []
+
+        for _ in range(eps_per_batch):
+            ep_centroids = tf.random.normal((k, embedding_dims), stddev=1.5, dtype=TEST_DTYPE)
+            ep_queries = []
+            ep_expected_distances = []
+
+            for _ in range(q * k):
+                query_distances = []
+                query_embedding = tf.random.normal((embedding_dims,), stddev=2.0, dtype=TEST_DTYPE)
+                for i in range(k):  # compare it to each centroid
+                    query_expected_distance = tf.reduce_sum((query_embedding - ep_centroids[i])**2)
+                    query_distances.append(query_expected_distance)
+                ep_queries.append(query_embedding)
+                ep_expected_distances.append(tf.stack(query_distances, 0))
+            class_centroids.append(ep_centroids)
+            queries.append(tf.stack(ep_queries, 0))
+            expected_distances.append(tf.stack(ep_expected_distances, 0))
+
+        class_centroids = tf.transpose(tf.stack(class_centroids), [0, 2, 1])
+        queries = tf.stack(queries)
+        expected_distances = tf.stack(expected_distances)
+
+        distances = negative_distance(queries, class_centroids)
+        assert distances.shape.dims == [eps_per_batch, q * k, k]
+        
