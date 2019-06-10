@@ -102,4 +102,4 @@ def test_negative_distance(eps_per_batch, k, q, embedding_dims):
 
         distances = negative_distance(queries, class_centroids)
         assert distances.shape.dims == [eps_per_batch, q * k, k]
-        
+        assert pytest.approx(-expected_distances.numpy()) == distances.numpy()
