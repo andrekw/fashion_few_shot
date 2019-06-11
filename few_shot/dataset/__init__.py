@@ -33,7 +33,7 @@ def create_omniglot_df(path: str) -> pd.DataFrame:
 
 class FewShotEpisodeGenerator(object):
 
-    def __init__(self, df: pd.DataFrame, episodes: int, n_shot: int, k_way: int, q_queries: int, batch_size: int = 1):
+    def __init__(self, df: pd.DataFrame, episodes: int, n_shot: int, k_way: int, q_queries: int, batch_size: int = 1, expected_k=None, expected_n=None, expected_q=None):
         """Encapsulates the logic to build few-shot episodes from the Omniglot dataset.
 
         :param df: DataFrame with class_name and filepath columns
@@ -50,6 +50,9 @@ class FewShotEpisodeGenerator(object):
         self.k_way = k_way
         self.q_queries = q_queries
         self.batch_size = batch_size
+        self.expected_n = expected_n
+        self.expected_q = expected_q
+        self.expected_k = expected_k
 
         self.df['class_id'] = skp.LabelEncoder().fit_transform(self.df.class_name)
 
