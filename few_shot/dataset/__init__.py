@@ -50,10 +50,7 @@ class FewShotEpisodeGenerator(object):
         self.k_way = k_way
         self.q_queries = q_queries
         self.batch_size = batch_size
-        self.expected_n = expected_n
-        self.expected_q = expected_q
-        self.expected_k = expected_k
-
+        
         self.df['class_id'] = skp.LabelEncoder().fit_transform(self.df.class_name)
 
     def __iter__(self) -> Tuple[List[str], List[int], List[str], List[int]]:
