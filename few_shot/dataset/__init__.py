@@ -104,10 +104,10 @@ class FewShotEpisodeGenerator(object):
                                             (tf.string, tf.int32, tf.string, tf.int32))
 
         ds = ds.map(prepare_outputs,
-                    num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                    num_parallel_calls=2)
 
         if post_transform:
             ds = ds.map(post_transform,
-                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
+                        num_parallel_calls=2)
 
-        return ds.batch(self.batch_size).prefetch(buffer_size=tf.data.experimental.AUTOTUNE).make_one_shot_iterator()
+        return ds.batch(self.batch_size).prefetch(buffer_size=1).make_one_shot_iterator()
