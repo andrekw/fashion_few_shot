@@ -2,8 +2,6 @@ import os
 
 import pandas as pd
 
-basedir = '../datasets/fashion-dataset'
-
 
 def build_fashion_df(basedir, min_rows: int = 10):
     img_dir = os.path.join(basedir, 'images')
@@ -19,8 +17,8 @@ def build_fashion_df(basedir, min_rows: int = 10):
         lambda x: os.path.abspath(os.path.join(img_dir, f'{x}.jpg')))
     df['class_name'] = df.articleType
 
-    rows_per_class = df[df.id.isin(valid_image_ids)].groupby('articleType').id.nunique().reset_index()
-    valid_classes = rows_per_class[rows_per_class > min_rows]
+    rows_per_class = df[df.id.isin(valid_image_ids)].groupby('articleType').id.nunique()
+    valid_classes = set(rows_per_class[rows_per_class > min_rows].index)
 
     valid_df = df[(df.articleType.isin(valid_classes)) & (df.id.isin(valid_image_ids))]
 
