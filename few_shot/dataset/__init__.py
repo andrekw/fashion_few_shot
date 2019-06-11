@@ -33,7 +33,7 @@ def create_omniglot_df(path: str) -> pd.DataFrame:
 
 class FewShotEpisodeGenerator(object):
 
-    def __init__(self, df: pd.DataFrame, episodes: int, n_shot: int, k_way: int, q_queries: int, batch_size: int = 1, expected_k=None, expected_n=None, expected_q=None):
+    def __init__(self, df: pd.DataFrame, episodes: int, n_shot: int, k_way: int, q_queries: int, batch_size: int = 1):
         """Encapsulates the logic to build few-shot episodes from the Omniglot dataset.
 
         :param df: DataFrame with class_name and filepath columns
