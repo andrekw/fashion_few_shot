@@ -20,6 +20,45 @@ def resize_img_pipeline_fn(img_shape):
     return resize_img_pipeline
 
 
+def pad_validation_inputs(n_shot = 1,
+                          n_queries_train = 5,
+                          n_queries_test = 1,
+                          k_way_train = 15,
+                          k_way_test = 5):
+    def pad_input(support_x, support_y, query_x, query_y):
+        support_x = tf.pad(support_x,
+                           [
+                               [0, 0],
+                               [0, n_shot * k_way_train - n_shot * k_way_test],
+                               [0, 0],
+                               [0, 0],
+                               [0, 0]
+                           ])
+        support_y = tf.pad(support_y,
+                           [
+                               [0, 0],
+                               [0, n_shot * k_way_train - n_shot * k_way_test],
+                               [0, k_way_train - k_way_test]
+                           ])
+        query_x = tf.pad(query_x,
+                         [
+                             [0, 0],
+                             [0, n_queries_train * k_way_train - n_queries_test * k_way_test],
+                             [0, 0],
+                             [0, 0],
+                             [0, 0]
+                         ])
+        query_y = tf.pad(query_y,
+                         [
+                             [0, 0],
+                             [0, n_queries_train * k_way_train - n_queries_test * k_way_test],
+                             [0, k_way_train - k_way_test]
+                         ])
+        return support_x, support_y, query_x, query_y
+
+    return pad_input
+
+
 def fashion_dfs(dataset_path: str, n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Builds train, validation and test DataFrames from the kaggle fashion dataset.
 
@@ -62,7 +101,7 @@ def evaluate_fashion_few_shot(train_df,
                                           n_epochs * eps_per_epoch,
                                           n_shot,
                                           k_way_test,
-                                          n_queries_train)
+                                          n_queries_test)
 
     test_dataset = FewShotEpisodeGenerator(test_df[['class_name', 'filepath']].copy(),
                                            n_epochs * eps_per_epoch,
@@ -71,7 +110,12 @@ def evaluate_fashion_few_shot(train_df,
                                            n_queries_test)
 
     train_it = train_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
-    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
+    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape),
+                                     post_transform=pad_validation_inputs(n_shot,
+                                                                          n_queries_train,
+                                                                          n_queries_test,
+                                                                          k_way_train,
+                                                                          k_way_test))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
     embedding_model = build_embedding_model(embedding_input)

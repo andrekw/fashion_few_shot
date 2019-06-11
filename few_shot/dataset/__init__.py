@@ -83,7 +83,7 @@ class FewShotEpisodeGenerator(object):
 
         return tf.image.decode_image(tf.read_file(path_tensor), dtype=tf.float32)
 
-    def tf_iterator(self, image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
+    def tf_iterator(self, image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None, post_transform: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
         """Create a tensorflow iterator of batches of episodes from data.
 
         :param image_pipeline: a function mapping from a filename to an image data tensor.
@@ -108,5 +108,9 @@ class FewShotEpisodeGenerator(object):
 
         ds = ds.map(prepare_outputs,
                     num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        if post_transform:
+            ds = ds.map(post_transform,
+                        num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         return ds.batch(self.batch_size).prefetch(buffer_size=tf.data.experimental.AUTOTUNE).make_one_shot_iterator()
