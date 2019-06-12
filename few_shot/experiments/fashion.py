@@ -63,14 +63,15 @@ def pad_validation_inputs(n_shot=1,
     return pad_input
 
 
-def fashion_dfs(dataset_path: str, n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def fashion_dfs(dataset_path: str, min_rows:int = 10, n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Builds train, validation and test DataFrames from the kaggle fashion dataset.
 
     :param dataset_path: path to the dataset
+    :param min_rows: required number of images for the class to be added to the DataFrames
     :param n_val_classes: how many classes to use in the validation set
     :returns: a tuple of train, validation and test DataFrames
     """
-    df = build_fashion_df(dataset_path)
+    df = build_fashion_df(dataset_path, min_rows)
 
     val_classes = set(np.random.choice(list(TRAINING_CLASSES), n_val_classes, replace=False))
     train_df = df[df.class_name.isin(TRAINING_CLASSES - val_classes)]
@@ -166,15 +167,17 @@ if __name__ == '__main__':
     TEST_K_WAY = [16, 5]
 
     lr = 1e-3
-    n_queries_train = 5
-    n_queries_test = 5
+    n_queries_train = 15
+    n_queries_test = 15
     k_way_train = 20
     eps_per_epoch = 100
     n_epochs = 100
     test_eps = 1000
-    img_shape = (240, 180, 3)  # in order to be able to fit everything in memory with a large k-way
+    img_shape = (160, 120, 3)  # in order to be able to fit everything in memory with a large k-way
 
-    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset', n_val_classes=16)
+    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset',
+                                            min_rows=n_queries_train * 2,  # support and query
+                                            n_val_classes=16)
 
     results = []
     for n_shots, k_way_test in itertools.product(SHOTS, TEST_K_WAY):
