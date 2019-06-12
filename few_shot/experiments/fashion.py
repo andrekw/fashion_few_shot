@@ -162,19 +162,19 @@ if __name__ == '__main__':
     np.random.seed(23)
     tf.random.set_random_seed(29)
 
-    SHOTS = [1, 5]
-    TEST_K_WAY = [5, 20]
+    SHOTS = [5, 1]
+    TEST_K_WAY = [16, 5]
 
     lr = 1e-3
     n_queries_train = 5
     n_queries_test = 5
-    k_way_train = 25
+    k_way_train = 20
     eps_per_epoch = 100
     n_epochs = 100
     test_eps = 1000
     img_shape = (240, 180, 3)  # in order to be able to fit everything in memory with a large k-way
 
-    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset', n_val_classes=12)
+    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset', n_val_classes=16)
 
     results = []
     for n_shots, k_way_test in itertools.product(SHOTS, TEST_K_WAY):
