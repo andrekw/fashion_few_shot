@@ -16,7 +16,7 @@ def resize_img_pipeline_fn(img_shape):
                                     dtype=tf.float32,
                                     channels=img_shape[-1])
 
-        return tf.image.resize_image_with_crop_or_pad(img, *img_shape[:-1])
+        return tf.image.resize_image_with_pad(img, *img_shape[:-1])
 
     return resize_img_pipeline
 
@@ -26,6 +26,7 @@ def pad_validation_inputs(n_shot = 1,
                           n_queries_test = 1,
                           k_way_train = 15,
                           k_way_test = 5):
+    raise NotImplementedError("this doesn't work")
     def pad_input(support_x, support_y, query_x, query_y):
         support_x = tf.pad(support_x,
                            [
@@ -138,7 +139,7 @@ def evaluate_fashion_few_shot(train_df,
               callbacks=[
                   tf.keras.callbacks.LearningRateScheduler(
                       lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5),
-                  tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True)
+                  tf.keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True)
               ])
     test_it = test_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
 
@@ -169,7 +170,7 @@ if __name__ == '__main__':
     eps_per_epoch = 100
     n_epochs = 100
     test_eps = 1000
-    img_shape = (40, 30, 3)
+    img_shape = (240, 180, 3)  # in order to be able to fit everything in memory with a large k-way
 
     train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset', n_val_classes=30)
 
@@ -188,7 +189,7 @@ if __name__ == '__main__':
                                                         n_epochs = n_epochs,
                                                         k_way_test = k_way_test,
                                                         test_eps = test_eps,
-                                                        img_shape = (40, 30, 3))
+                                                        img_shape = img_shape)
 
         results.append({
             'n_shots': n_shots,
