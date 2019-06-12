@@ -50,7 +50,7 @@ class FewShotEpisodeGenerator(object):
         self.k_way = k_way
         self.q_queries = q_queries
         self.batch_size = batch_size
-        
+
         self.df['class_id'] = skp.LabelEncoder().fit_transform(self.df.class_name)
 
     def __iter__(self) -> Tuple[List[str], List[int], List[str], List[int]]:
@@ -80,7 +80,9 @@ class FewShotEpisodeGenerator(object):
 
         return tf.image.decode_image(tf.read_file(path_tensor), dtype=tf.float32)
 
-    def tf_iterator(self, image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None, post_transform: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
+    def tf_iterator(self,
+                    image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+                    post_transform: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
         """Create a tensorflow iterator of batches of episodes from data.
 
         :param image_pipeline: a function mapping from a filename to an image data tensor.

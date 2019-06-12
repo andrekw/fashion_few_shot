@@ -21,16 +21,18 @@ def resize_img_pipeline_fn(img_shape):
     return resize_img_pipeline
 
 
-def pad_validation_inputs(n_shot = 1,
-                          n_queries_train = 5,
-                          n_queries_test = 1,
-                          k_way_train = 15,
-                          k_way_test = 5):
-    raise NotImplementedError("this doesn't work")
-    def pad_input(support_x, support_y, query_x, query_y):
+def pad_validation_inputs(n_shot=1,
+                          n_queries_train=5,
+                          n_queries_test=1,
+                          k_way_train=15,
+                          k_way_test=5):
+    """Pads a train or validation tensor in order to have the same shape as the training data."""
+
+    def pad_input(x_tensors, query_y):
+        (support_x, support_y, query_x) = x_tensors
         support_x = tf.pad(support_x,
                            [
-                               [0, 0],
+
                                [0, n_shot * k_way_train - n_shot * k_way_test],
                                [0, 0],
                                [0, 0],
@@ -38,13 +40,13 @@ def pad_validation_inputs(n_shot = 1,
                            ])
         support_y = tf.pad(support_y,
                            [
-                               [0, 0],
+
                                [0, n_shot * k_way_train - n_shot * k_way_test],
                                [0, k_way_train - k_way_test]
                            ])
         query_x = tf.pad(query_x,
                          [
-                             [0, 0],
+
                              [0, n_queries_train * k_way_train - n_queries_test * k_way_test],
                              [0, 0],
                              [0, 0],
@@ -52,11 +54,11 @@ def pad_validation_inputs(n_shot = 1,
                          ])
         query_y = tf.pad(query_y,
                          [
-                             [0, 0],
+
                              [0, n_queries_train * k_way_train - n_queries_test * k_way_test],
                              [0, k_way_train - k_way_test]
                          ])
-        return support_x, support_y, query_x, query_y
+        return (support_x, support_y, query_x), query_y
 
     return pad_input
 
@@ -102,8 +104,8 @@ def evaluate_fashion_few_shot(train_df,
     val_dataset = FewShotEpisodeGenerator(val_df[['class_name', 'filepath']].copy(),
                                           n_epochs * eps_per_epoch,
                                           n_shot,
-                                          k_way_train,
-                                          n_queries_train)
+                                          k_way_test,
+                                          n_queries_test)
 
     test_dataset = FewShotEpisodeGenerator(test_df[['class_name', 'filepath']].copy(),
                                            n_epochs * eps_per_epoch,
@@ -112,13 +114,13 @@ def evaluate_fashion_few_shot(train_df,
                                            n_queries_test)
 
     train_it = train_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
-    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape)) #,
-    '''                                 post_transform=pad_validation_inputs(n_shot,
+    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape),
+                                     post_transform=pad_validation_inputs(n_shot,
                                                                           n_queries_train,
                                                                           n_queries_test,
                                                                           k_way_train,
                                                                           k_way_test))
-    '''
+
     embedding_input = tf.keras.layers.Input(shape=img_shape)
     embedding_model = build_embedding_model(embedding_input)
     model = build_prototype_network(n_shot,
@@ -172,7 +174,7 @@ if __name__ == '__main__':
     test_eps = 1000
     img_shape = (240, 180, 3)  # in order to be able to fit everything in memory with a large k-way
 
-    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset', n_val_classes=30)
+    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset', n_val_classes=12)
 
     results = []
     for n_shots, k_way_test in itertools.product(SHOTS, TEST_K_WAY):
@@ -180,16 +182,16 @@ if __name__ == '__main__':
         test_loss, test_acc = evaluate_fashion_few_shot(train_df=train_df,
                                                         val_df=val_df,
                                                         test_df=test_df,
-                                                        lr = lr,
-                                                        n_shot = n_shots,
-                                                        n_queries_train = n_queries_train,
-                                                        n_queries_test = n_queries_test,
-                                                        k_way_train = k_way_train,
-                                                        eps_per_epoch = eps_per_epoch,
-                                                        n_epochs = n_epochs,
-                                                        k_way_test = k_way_test,
-                                                        test_eps = test_eps,
-                                                        img_shape = img_shape)
+                                                        lr=lr,
+                                                        n_shot=n_shots,
+                                                        n_queries_train=n_queries_train,
+                                                        n_queries_test=n_queries_test,
+                                                        k_way_train=k_way_train,
+                                                        eps_per_epoch=eps_per_epoch,
+                                                        n_epochs=n_epochs,
+                                                        k_way_test=k_way_test,
+                                                        test_eps=test_eps,
+                                                        img_shape=img_shape)
 
         results.append({
             'n_shots': n_shots,
