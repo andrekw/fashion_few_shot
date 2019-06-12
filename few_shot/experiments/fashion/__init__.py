@@ -1,4 +1,3 @@
-import itertools
 from typing import Tuple
 
 import numpy as np
@@ -63,7 +62,9 @@ def pad_validation_inputs(n_shot=1,
     return pad_input
 
 
-def fashion_dfs(dataset_path: str, min_rows:int = 10, n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def fashion_dfs(dataset_path: str,
+                min_rows: int = 10,
+                n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Builds train, validation and test DataFrames from the kaggle fashion dataset.
 
     :param dataset_path: path to the dataset
@@ -72,8 +73,11 @@ def fashion_dfs(dataset_path: str, min_rows:int = 10, n_val_classes: int = 5) ->
     :returns: a tuple of train, validation and test DataFrames
     """
     df = build_fashion_df(dataset_path, min_rows)
+    print(df.class_name.nunique())
 
-    val_classes = set(np.random.choice(list(TRAINING_CLASSES), n_val_classes, replace=False))
+    valid_train_classes = TRAINING_CLASSES.intersection(df.class_name.unique())
+
+    val_classes = set(np.random.choice(list(valid_train_classes), n_val_classes, replace=False))
     train_df = df[df.class_name.isin(TRAINING_CLASSES - val_classes)]
     val_df = df[df.class_name.isin(val_classes)]
 
@@ -154,54 +158,8 @@ def evaluate_fashion_few_shot(train_df,
     test_opt = tf.keras.optimizers.Adam(lr=lr)
     test_model.compile(optimizer=test_opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
     test_loss, test_acc = test_model.evaluate(test_it, steps=test_eps)
-    return test_loss, test_acc
-
-
-if __name__ == '__main__':
-    tf.enable_eager_execution()
-
-    np.random.seed(23)
-    tf.random.set_random_seed(29)
-
-    SHOTS = [5, 1]
-    TEST_K_WAY = [15, 5]
-
-    lr = 1e-3
-    n_queries_train = 15
-    n_queries_test = 15
-    k_way_train = 20
-    eps_per_epoch = 100
-    n_epochs = 100
-    test_eps = 1000
-    img_shape = (160, 120, 3)  # in order to be able to fit everything in memory with a large k-way
-
-    train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset',
-                                            min_rows=n_queries_train + max(SHOTS),  # support and query
-                                            n_val_classes=16)
-
-    assert k_way_train <= train_df.class_name.nunique()
-    assert 16 == val_df.class_name.nunique()
-    assert k_way_test <= test_df.class_name.nunique()
-
-    results = []
-    for n_shots, k_way_test in itertools.product(SHOTS, TEST_K_WAY):
-        print(f'Running fashion experiment {n_shots}-shot, {k_way_test} way')
-        test_loss, test_acc = evaluate_fashion_few_shot(train_df=train_df,
-                                                        val_df=val_df,
-                                                        test_df=test_df,
-                                                        lr=lr,
-                                                        n_shot=n_shots,
-                                                        n_queries_train=n_queries_train,
-                                                        n_queries_test=n_queries_test,
-                                                        k_way_train=k_way_train,
-                                                        eps_per_epoch=eps_per_epoch,
-                                                        n_epochs=n_epochs,
-                                                        k_way_test=k_way_test,
-                                                        test_eps=test_eps,
-                                                        img_shape=img_shape)
-
-        results.append({
-            'n_shots': n_shots,
+    return {
+            'n_shots': n_shot,
             'k_way_train': k_way_train,
             'k_way_test': k_way_test,
             'learning_rate': lr,
@@ -209,8 +167,4 @@ if __name__ == '__main__':
             'n_queries_train': n_queries_train,
             'test_accuracy': test_acc,
             'test_loss': test_loss
-        })
-
-    df = pd.DataFrame.from_records(results)
-    print(df)
-    df.to_csv('fashion_results.csv')
+    }
