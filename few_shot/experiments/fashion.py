@@ -164,7 +164,7 @@ if __name__ == '__main__':
     tf.random.set_random_seed(29)
 
     SHOTS = [5, 1]
-    TEST_K_WAY = [16, 5]
+    TEST_K_WAY = [15, 5]
 
     lr = 1e-3
     n_queries_train = 15
@@ -176,8 +176,12 @@ if __name__ == '__main__':
     img_shape = (160, 120, 3)  # in order to be able to fit everything in memory with a large k-way
 
     train_df, val_df, test_df = fashion_dfs('datasets/fashion_mac/fashion-dataset',
-                                            min_rows=n_queries_train * 2,  # support and query
+                                            min_rows=n_queries_train + max(SHOTS),  # support and query
                                             n_val_classes=16)
+
+    assert k_way_train <= train_df.class_name.nunique()
+    assert 16 == val_df.class_name.nunique()
+    assert k_way_test <= test_df.class_name.nunique()
 
     results = []
     for n_shots, k_way_test in itertools.product(SHOTS, TEST_K_WAY):
