@@ -98,7 +98,8 @@ def evaluate_fashion_few_shot(train_df,
                               n_epochs,
                               k_way_test,
                               test_eps,
-                              img_shape):
+                              img_shape,
+                              img_pipeline_fn=resize_img_pipeline_fn):
 
     train_dataset = FewShotEpisodeGenerator(train_df[['class_name', 'filepath']].copy(),
                                             n_epochs * eps_per_epoch,
@@ -118,8 +119,8 @@ def evaluate_fashion_few_shot(train_df,
                                            k_way_test,
                                            n_queries_test)
 
-    train_it = train_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
-    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape),
+    train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
+    val_it = val_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape),
                                      post_transform=pad_validation_inputs(n_shot,
                                                                           n_queries_train,
                                                                           n_queries_test,
@@ -148,7 +149,7 @@ def evaluate_fashion_few_shot(train_df,
                       lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5),
                   tf.keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True)
               ])
-    test_it = test_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
+    test_it = test_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
 
     test_model = build_prototype_network(n_shot,
                                          k_way_test,
