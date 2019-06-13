@@ -13,8 +13,9 @@ def augmented_img_pipeline_fn(img_shape):
         img = tf.image.decode_image(tf.read_file(path_tensor),
                                     dtype=tf.float32,
                                     channels=img_shape[-1])
-        img = perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
-        return tf.image.resize_image_with_pad(img, *img_shape[:-1])
+        img = tf.image.resize_image_with_pad(img, *img_shape[:-1])
+        img.set_shape(img_shape)
+        return perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
 
     return resize_img_pipeline
 

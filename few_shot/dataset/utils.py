@@ -2,6 +2,8 @@ import tensorflow as tf
 
 
 def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate=0.8, is_training=False):
+    p = tf.convert_to_tensor(p)
+    is_training = tf.convert_to_tensor(is_training)
     shape = tf.shape(X)
 
     width = tf.cast(shape[0], tf.float32)
