@@ -102,6 +102,7 @@ def evaluate_fashion_few_shot(train_df,
                               img_shape,
                               img_pipeline_fn=resize_img_pipeline_fn,
                               patience=1,
+                              opt=None,
                               callbacks=None):
     args = locals()
     args.pop('train_df')
@@ -143,7 +144,8 @@ def evaluate_fashion_few_shot(train_df,
                                     img_shape,
                                     embedding_model_fn=lambda x: embedding_model)
 
-    opt = tf.keras.optimizers.Adam(lr=lr)
+    if not opt:
+        opt = tf.keras.optimizers.Adam(lr=lr)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
     if not callbacks:
