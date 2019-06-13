@@ -103,7 +103,8 @@ class FewShotEpisodeGenerator(object):
                 )
 
         ds = tf.data.Dataset.from_generator(lambda: self,
-                                            (tf.string, tf.int32, tf.string, tf.int32))
+                                            (tf.string, tf.int32, tf.string, tf.int32),
+                                            (tf.TensorShape([self.n_shot * self.k_way]), tf.TensorShape([self.n_shot * self.k_way]), tf.TensorShape([self.q_queries * self.k_way]), tf.TensorShape([self.q_queries * self.k_way])))
 
         ds = ds.map(prepare_outputs,
                     num_parallel_calls=2)
