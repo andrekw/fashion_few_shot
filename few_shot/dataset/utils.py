@@ -12,10 +12,10 @@ def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate
 
     transforms = [identity]
 
-    if flipx and tf.random_uniform([]) < p:
-        X = tf.image.flip_left_right(X)
-    if flipy and tf.random_uniform([]) < p:
-        X = tf.image.flip_up_down(X)
+    if flipx:
+        X = tf.cond(tf.random_uniform([]) < p, lambda: tf.image.flip_left_right(X), lambda: X)
+    if flipy:
+        X = tf.cond(tf.random_uniform([]) < p, lambda: tf.image.flip_up_down(X), lambda: X)
     scale = tf.random_uniform([], minval=1.0/scale, maxval=scale)
     transforms.append(scale * identity)
 
