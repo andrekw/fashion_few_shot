@@ -15,7 +15,8 @@ def augmented_img_pipeline_fn(img_shape):
                                     channels=img_shape[-1])
         img = tf.image.resize_image_with_pad(img, *img_shape[:-1])
         img.set_shape(img_shape)
-        return perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
+        img = perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
+        return tf.clip_by_value(img, 0, 1)
 
     return resize_img_pipeline
 
