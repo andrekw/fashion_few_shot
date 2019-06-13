@@ -72,6 +72,7 @@ def fashion_dfs(dataset_path: str,
     :param n_val_classes: how many classes to use in the validation set
     :returns: a tuple of train, validation and test DataFrames
     """
+    # TODO: use new validation format
     df = build_fashion_df(dataset_path, min_rows)
     print(df.class_name.nunique())
 
