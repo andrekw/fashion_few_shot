@@ -65,7 +65,7 @@ if __name__ == '__main__':
                                            test_eps=test_eps,
                                            img_shape=img_shape)
 
-        results.append(results)
+        results.append(result)
 
     df = pd.DataFrame.from_records(results)
     print(df)
