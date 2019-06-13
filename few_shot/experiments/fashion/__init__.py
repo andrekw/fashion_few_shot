@@ -160,7 +160,7 @@ def evaluate_fashion_few_shot(train_df,
               validation_data=val_it,
               validation_steps=eps_per_epoch,
               callbacks=callbacks)
-    test_it = test_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
+    test_it = test_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
 
     test_model = build_prototype_network(n_shot,
                                          k_way_test,
