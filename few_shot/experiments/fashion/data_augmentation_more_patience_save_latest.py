@@ -32,8 +32,8 @@ if __name__ == '__main__':
     TEST_K_WAY = [15, 5]
 
     lr = 1e-3
-    n_queries_train = 15
-    n_queries_test = 15
+    n_queries_train = 5
+    n_queries_test = 5
     k_way_train = 20
     eps_per_epoch = 100
     n_epochs = 100
