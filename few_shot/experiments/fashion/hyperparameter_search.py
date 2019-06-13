@@ -126,7 +126,7 @@ if __name__ == '__main__':
     eps_per_epoch = 100
     n_epochs = 100
     test_eps = 1000
-    img_shape = (40, 30, 3)  # in order to be able to fit everything in memory with a large k-way
+    img_shape = (160, 120, 3)  # in order to be able to fit everything in memory with a large k-way
 
     train_df, val_df, test_df = fashion_dfs('datasets/fashion-dataset',
                                             min_rows=n_queries_train + max(SHOTS),  # support and query
