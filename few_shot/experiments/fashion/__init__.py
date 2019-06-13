@@ -99,7 +99,14 @@ def evaluate_fashion_few_shot(train_df,
                               k_way_test,
                               test_eps,
                               img_shape,
-                              img_pipeline_fn=resize_img_pipeline_fn):
+                              img_pipeline_fn=resize_img_pipeline_fn,
+                              patience=1,
+                              callbacks=None):
+    args = locals()
+    args.pop('train_df')
+    args.pop('test_df')
+    args.pop('val_df')
+    args.pop('img_pipeline_fn')
 
     train_dataset = FewShotEpisodeGenerator(train_df[['class_name', 'filepath']].copy(),
                                             n_epochs * eps_per_epoch,
@@ -138,17 +145,20 @@ def evaluate_fashion_few_shot(train_df,
     opt = tf.keras.optimizers.Adam(lr=lr)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
+    if not callbacks:
+        callbacks = [
+                  tf.keras.callbacks.LearningRateScheduler(
+                      lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5),
+                  tf.keras.callbacks.EarlyStopping(patience=patience, restore_best_weights=True)
+              ]
+
     model.fit(train_it,
               epochs=n_epochs,
               steps_per_epoch=eps_per_epoch,
               shuffle=False,
               validation_data=val_it,
               validation_steps=eps_per_epoch,
-              callbacks=[
-                  tf.keras.callbacks.LearningRateScheduler(
-                      lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5),
-                  tf.keras.callbacks.EarlyStopping(patience=1, restore_best_weights=True)
-              ])
+              callbacks=callbacks)
     test_it = test_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
 
     test_model = build_prototype_network(n_shot,
