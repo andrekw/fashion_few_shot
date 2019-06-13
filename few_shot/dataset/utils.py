@@ -8,7 +8,6 @@ def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate
 
     width = tf.cast(shape[0], tf.float32)
     height = tf.cast(shape[1], tf.float32)
-    channels = shape[2]
 
     identity = [1.0, 0, 0, 0, 1, 0, 0, 0]
 
@@ -28,12 +27,12 @@ def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate
         tf.random_uniform([2], minval=-translate/2, maxval=translate/2))
     transforms.append(translations)
 
-    brightened = tf.image.random_brightness(X, 0.5)
-    contrasted = tf.image.random_contrast(X, 0.2, 0.5)
+    brightened = tf.image.random_brightness(X, 0.1)
+    # contrasted = tf.image.random_contrast(brightened, 0.2, 0.3)
 
     return tf.cond(is_training,
                    lambda: tf.contrib.image.transform(
-                       brightened, 
-                       tf.contrib.image.compose_transforms(*transforms))
-                       + tf.random_normal(X.shape, stddev=0.01),
+                       brightened,
+                       tf.contrib.image.compose_transforms(*transforms), interpolation='BILINEAR')
+                   + tf.random_normal(X.shape, stddev=0.01),
                    lambda: X)

@@ -19,6 +19,7 @@ def augmented_img_pipeline_fn(img_shape):
 
     return resize_img_pipeline
 
+
 if __name__ == '__main__':
     tf.enable_eager_execution()
 
