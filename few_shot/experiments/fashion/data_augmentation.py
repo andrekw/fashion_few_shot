@@ -63,7 +63,8 @@ if __name__ == '__main__':
                                            n_epochs=n_epochs,
                                            k_way_test=k_way_test,
                                            test_eps=test_eps,
-                                           img_shape=img_shape)
+                                           img_shape=img_shape,
+                                           img_pipeline_fn=augmented_img_pipeline_fn)
 
         results.append(result)
 
