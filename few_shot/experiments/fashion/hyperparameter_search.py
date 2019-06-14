@@ -36,7 +36,7 @@ def few_shot_optimize(train_df,
         ]
 
     @skopt.utils.use_named_args(dimensions)
-    def evaluate_parameters(optimizer_type, learning_rate, k_way_train_type, early_stop_patience, img_augmentation):
+    def evaluate_parameters(optimizer_type, learning_rate, k_way_train_type, early_stop_patience):
         if optimizer_type == 'adam':
             optimizer = tf.keras.optimizers.Adam(lr=learning_rate)
         elif optimizer_type == 'rmsprop':
