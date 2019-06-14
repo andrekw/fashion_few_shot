@@ -32,8 +32,7 @@ def few_shot_optimize(train_df,
         skopt.space.Categorical(name='optimizer_type', categories=('adam', 'rmsprop')),
         skopt.space.Real(name='learning_rate', low=1e-3, high=3),
         skopt.space.Categorical(name='k_way_train_type', categories=('large', 'same')),
-        skopt.space.Integer(name='early_stop_patience', low=1, high=5),
-        skopt.space.Integer(name='img_augmentation', low=0, high=1)
+        skopt.space.Integer(name='early_stop_patience', low=1, high=5)
         ]
 
     @skopt.utils.use_named_args(dimensions)
@@ -51,10 +50,8 @@ def few_shot_optimize(train_df,
             cur_k_train = k_way_test
         else:
             raise ValueError('Unsupported k value')
-        if img_augmentation:
-            img_fn = augmented_img_pipeline_fn
-        else:
-            img_fn = resize_img_pipeline_fn
+        img_fn = augmented_img_pipeline_fn
+
         result = evaluate_fashion_few_shot(train_df=experiment_train_df,
                                            val_df=experiment_val_df,
                                            test_df=val_df,
@@ -76,7 +73,7 @@ def few_shot_optimize(train_df,
 
     res = skopt.gp_minimize(evaluate_parameters, dimensions, n_calls=10, n_random_starts=5)
 
-    best_opt, best_lr, best_k_way_type, best_patience, best_augmn = res.x
+    best_opt, best_lr, best_k_way_type, best_patience = res.x
 
     print(res.x)
 
@@ -102,10 +99,8 @@ def few_shot_optimize(train_df,
                                        img_shape=img_shape,
                                        opt=opt,
                                        patience=best_patience,
-                                       img_pipeline_fn=augmented_img_pipeline_fn if best_augmn
-                                       else resize_img_pipeline_fn)
+                                       img_pipeline_fn=augmented_img_pipeline_fn)
     result['opt'] = best_opt
-    result['do_augment'] = bool(best_augmn)
 
     return result
 
