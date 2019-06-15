@@ -7,8 +7,6 @@ import tensorflow as tf
 from few_shot.experiments.fashion import evaluate_fashion_few_shot, fashion_dfs
 
 if __name__ == '__main__':
-    tf.enable_eager_execution()
-
     np.random.seed(23)
     tf.random.set_random_seed(29)
 

@@ -106,8 +106,6 @@ def few_shot_optimize(train_df,
 
 
 if __name__ == '__main__':
-    tf.enable_eager_execution()
-
     np.random.seed(23)
     tf.random.set_random_seed(29)
 

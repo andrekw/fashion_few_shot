@@ -22,8 +22,6 @@ def augmented_img_pipeline_fn(img_shape):
 
 
 if __name__ == '__main__':
-    tf.enable_eager_execution()
-
     np.random.seed(23)
     tf.random.set_random_seed(29)
 
