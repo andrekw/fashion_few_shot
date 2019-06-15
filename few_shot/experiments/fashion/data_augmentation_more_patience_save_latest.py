@@ -41,7 +41,9 @@ if __name__ == '__main__':
                 lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5),
             tf.keras.callbacks.EarlyStopping(patience=5, restore_best_weights=True),
             tf.keras.callbacks.ReduceLROnPlateau(factor=0.5, patience=2),
-            tf.keras.callbacks.TensorBoard(log_dir=f'./logs/augmented_only_patience_lrplateu_nshots={n_shots}_k_way={k_way_test}', update_freq='batch')
+            tf.keras.callbacks.TensorBoard(log_dir='./logs/augmented_only_patience_lrplateu_'
+                                           f'nshots={n_shots}_k_way={k_way_test}',
+                                           update_freq='batch')
               ]
         result = evaluate_fashion_few_shot(train_df=train_df,
                                            val_df=val_df,
