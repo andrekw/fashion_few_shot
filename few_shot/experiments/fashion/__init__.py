@@ -105,7 +105,8 @@ def evaluate_fashion_few_shot(train_df,
                               patience=1,
                               opt=None,
                               callbacks=None,
-                              restore_best_weights=True):
+                              restore_best_weights=True,
+                              embedding_fn=build_embedding_model):
     args = locals()
     args.pop('train_df')
     args.pop('test_df')
@@ -136,7 +137,7 @@ def evaluate_fashion_few_shot(train_df,
     val_it = val_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
-    embedding_model = build_embedding_model(embedding_input)
+    embedding_model = embedding_fn(embedding_input)
     model = build_prototype_network(n_shot,
                                     k_way_train,
                                     n_queries_train,
