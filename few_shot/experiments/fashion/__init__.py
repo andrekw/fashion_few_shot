@@ -57,7 +57,7 @@ def evaluate_fashion_few_shot(train_df,
                                            n_queries_test)
 
     train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
-    val_it = val_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
+    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
     embedding_model = embedding_fn(embedding_input)
