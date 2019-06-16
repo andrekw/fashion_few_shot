@@ -25,7 +25,10 @@ def evaluate_fashion_few_shot(train_df,
                               patience=config.PATIENCE,
                               opt=None,
                               callbacks=None,
-                              restore_best_weights=True):
+                              restore_best_weights=True,
+                              embedding_fn=build_embedding_model,
+                              reduce_lr_on_plateau=False,
+                              reduction_factor=0.75):
     args = locals()
     args.pop('train_df')
     args.pop('test_df')
@@ -33,6 +36,7 @@ def evaluate_fashion_few_shot(train_df,
     args.pop('img_pipeline_fn')
     args.pop('opt')
     args.pop('callbacks')
+    print(args)
 
     train_dataset = FewShotEpisodeGenerator(train_df[['class_name', 'filepath']].copy(),
                                             n_epochs * eps_per_epoch,
@@ -56,7 +60,7 @@ def evaluate_fashion_few_shot(train_df,
     val_it = val_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
-    embedding_model = build_embedding_model(embedding_input)
+    embedding_model = embedding_fn(embedding_input)
     model = build_prototype_network(n_shot,
                                     k_way_train,
                                     n_queries_train,
@@ -69,8 +73,8 @@ def evaluate_fashion_few_shot(train_df,
 
     if not callbacks:
         callbacks = [
-                  tf.keras.callbacks.LearningRateScheduler(
-                      lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5)
+            tf.keras.callbacks.LearningRateScheduler(
+                lambda i, lr: lr if not i or i % (2000//eps_per_epoch) else lr * 0.5, verbose=1),
               ]
 
     test_it = test_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
@@ -89,13 +93,20 @@ def evaluate_fashion_few_shot(train_df,
     curr_step = 0  # for patience
 
     for i in range(n_epochs):
-        model.fit(train_it,
-                  epochs=1,
-                  initial_epoch=i,
-                  steps_per_epoch=eps_per_epoch,
-                  shuffle=False)
+        print('Training:')
+        history = model.fit(train_it,
+                            epochs=i + 1,
+                            initial_epoch=i,
+                            steps_per_epoch=eps_per_epoch,
+                            shuffle=False,
+                            callbacks=callbacks,
+                            verbose=1
+)
+
+        print(history.history)
         latest_weights = model.get_weights()
 
+        print('Validation:')
         val_loss, val_acc = test_model.evaluate(val_it, steps=eps_per_epoch)
         print(f'epoch {i}: val_loss: {val_loss}, val_cat_accuracy: {val_acc}')
         if val_loss < best_val_loss:
@@ -104,6 +115,12 @@ def evaluate_fashion_few_shot(train_df,
             curr_step = 0
         else:
             curr_step += 1
+            if reduce_lr_on_plateau:
+                new_lr = max(tf.keras.backend.get_value(model.optimizer.lr) * reduction_factor, 1e-4)
+                print(f'reduced lr to {new_lr}')
+                tf.keras.backend.set_value(
+                    model.optimizer.lr,
+                    new_lr)
 
         if curr_step > patience:
             break
