@@ -53,7 +53,7 @@ The module ~few_shot.experiments.fashion~ contains the experiments I've ran. Eac
 
 **** Tuning image augmentation
 
-The augmentation might be too strong and the model might have too hard of a time learning (Too much noise, brightness changes, etc). Especially since the images in this set are professionally-taken, variations related to exposure, for example might be actually detrimental.
+The augmentation might be too strong and the model might have too hard of a time learning (Too much noise, brightness changes, etc). Especially since the images in this set are professionally-taken, arificial variation in exposure, for example, might be actually detrimental.
 
 **** No early stopping
 
@@ -61,11 +61,11 @@ The augmentation might be too strong and the model might have too hard of a time
 
 **** Hyperparameter search
 
-- This takes a very long time to run, I haven't had enough time to let it go through enough iterations to make it worthwhile. I'd estimate at least 50 runs at least.
+- This takes a very long time to run, I haven't had enough time to let it go through enough iterations to make it worthwhile. I'd estimate it'd need at least 50 runs at least.
 
 **** Class augmentations
 
-- Try upside-down images as new classes for training;
+- Try upside-down images as new classes for training (like it's done for Omniglot in the paper);
 - Something like [[https://arxiv.org/abs/1706.00409][Fader Networks]] to generate new classes and samples based on combinations of attributes.
 
 **** Other approaches
