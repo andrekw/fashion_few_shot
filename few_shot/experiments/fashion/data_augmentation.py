@@ -5,21 +5,7 @@ import pandas as pd
 import tensorflow as tf
 
 from few_shot.experiments.fashion import evaluate_fashion_few_shot, fashion_dfs
-from few_shot.dataset.utils import perturb_image
-
-
-def augmented_img_pipeline_fn(img_shape):
-    def resize_img_pipeline(path_tensor):
-        img = tf.image.decode_image(tf.read_file(path_tensor),
-                                    dtype=tf.float32,
-                                    channels=img_shape[-1])
-        img = tf.image.resize_image_with_pad(img, *img_shape[:-1])
-        img.set_shape(img_shape)
-        img = perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
-        return tf.clip_by_value(img, 0, 1)
-
-    return resize_img_pipeline
-
+from few_shot.dataset.image_pipeline import augmented_img_pipeline_fn
 
 if __name__ == '__main__':
     np.random.seed(23)

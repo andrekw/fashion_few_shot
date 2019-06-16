@@ -5,7 +5,7 @@ import pandas as pd
 import tensorflow as tf
 
 from few_shot.experiments.fashion import evaluate_fashion_few_shot, fashion_dfs
-from few_shot.experiments.fashion.data_augmentation import augmented_img_pipeline_fn
+from few_shot.dataset.image_pipeline import augmented_img_pipeline_fn
 
 if __name__ == '__main__':
     np.random.seed(23)
