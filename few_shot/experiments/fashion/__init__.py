@@ -100,8 +100,7 @@ def evaluate_fashion_few_shot(train_df,
                             steps_per_epoch=eps_per_epoch,
                             shuffle=False,
                             callbacks=callbacks,
-                            verbose=1
-)
+                            verbose=1)
 
         print(history.history)
         latest_weights = model.get_weights()
@@ -131,6 +130,7 @@ def evaluate_fashion_few_shot(train_df,
     test_loss, test_acc = test_model.evaluate(test_it, steps=test_eps)
     args.update({
         'test_accuracy': test_acc,
-        'test_loss': test_loss
+        'test_loss': test_loss,
+        'training_batches': i
     })
     return args

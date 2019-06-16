@@ -5,10 +5,12 @@ import pandas as pd
 import skopt
 import tensorflow as tf
 
+from few_shot.experiments.fashion import config
 from few_shot.experiments.fashion import evaluate_fashion_few_shot
 from few_shot.dataset.fashion import fashion_dfs
 from few_shot.dataset.image_pipeline import augmented_img_pipeline_fn
 from few_shot.model import build_embedding_model
+
 
 MAX_SHOTS = 5
 
@@ -17,13 +19,14 @@ def few_shot_optimize(train_df,
                       val_df,
                       test_df,
                       n_shot,
-                      n_queries_train,
-                      n_queries_test,
-                      eps_per_epoch,
-                      n_epochs,
                       k_way_test,
-                      test_eps,
-                      img_shape):
+                      k_way_train=config.K_WAY_TRAIN,
+                      n_queries_train=config.N_QUERIES_TRAIN,
+                      n_queries_test=config.N_QUERIES_TEST,
+                      eps_per_epoch=config.EPS_PER_EPOCH,
+                      n_epochs=config.N_EPOCHS,
+                      test_eps=config.TEST_EPS,
+                      img_shape=config.IMG_SHAPE):
 
     experiment_val_classes = set(np.random.choice(train_df.class_name.unique(), size=16, replace=False))
     experiment_train_df = train_df[~train_df.class_name.isin(experiment_val_classes)]
@@ -59,8 +62,8 @@ def few_shot_optimize(train_df,
         result = evaluate_fashion_few_shot(train_df=experiment_train_df,
                                            val_df=experiment_val_df,
                                            test_df=val_df,
-                                           lr=lr,
-                                           n_shot=n_shots,
+                                           lr=learning_rate,
+                                           n_shot=n_shot,
                                            n_queries_train=n_queries_train,
                                            n_queries_test=n_queries_test,
                                            k_way_train=cur_k_train,
@@ -72,15 +75,14 @@ def few_shot_optimize(train_df,
                                            opt=optimizer,
                                            img_pipeline_fn=img_fn,
                                            embedding_fn=lambda x: build_embedding_model(x, n_convs, dropout),
-                                           patience=early_stop_patience
-        )
+                                           patience=early_stop_patience)
         result['optimizer'] = optimizer_type
 
         return result['test_loss']
 
     res = skopt.gp_minimize(evaluate_parameters, dimensions, n_calls=10, n_random_starts=5)
 
-    best_opt, best_lr, best_k_way_type, best_convs, best_dropout, best_patience= res.x
+    best_opt, best_lr, best_k_way_type, best_convs, best_dropout, best_patience = res.x
 
     print(res.x)
 
@@ -94,7 +96,7 @@ def few_shot_optimize(train_df,
     result = evaluate_fashion_few_shot(train_df=train_df,
                                        val_df=val_df,
                                        test_df=test_df,
-                                       lr=lr,
+                                       lr=best_lr,
                                        n_shot=n_shots,
                                        n_queries_train=n_queries_train,
                                        n_queries_test=n_queries_test,
@@ -119,21 +121,7 @@ if __name__ == '__main__':
     SHOTS = [5]
     TEST_K_WAY = [15]
 
-    lr = 1e-3
-    n_queries_train = 5
-    n_queries_test = 5
-    k_way_train = 20
-    eps_per_epoch = 100
-    n_epochs = 100
-    test_eps = 1000
-    img_shape = (160, 120, 3)  # in order to be able to fit everything in memory with a large k-way
-
-    train_df, val_df, test_df = fashion_dfs('datasets/fashion-dataset',
-                                            min_rows=n_queries_train + max(SHOTS),  # support and query
-                                            n_val_classes=16)
-
-    assert k_way_train <= train_df.class_name.nunique()
-    assert 16 == val_df.class_name.nunique()
+    train_df, val_df, test_df = fashion_dfs()
 
     results = []
     for n_shots, k_way_test in itertools.product(SHOTS, TEST_K_WAY):
@@ -143,13 +131,8 @@ if __name__ == '__main__':
                                    val_df=val_df,
                                    test_df=test_df,
                                    n_shot=n_shots,
-                                   n_queries_train=n_queries_train,
-                                   n_queries_test=n_queries_test,
-                                   eps_per_epoch=eps_per_epoch,
-                                   n_epochs=n_epochs,
                                    k_way_test=k_way_test,
-                                   test_eps=test_eps,
-                                   img_shape=img_shape)
+                                   k_way_train=25)
 
         results.append(result)
 
