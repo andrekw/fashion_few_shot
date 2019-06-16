@@ -1,4 +1,4 @@
-IMAGE_NAME := fashion_few_shot  #'kwandre/fashion_few_shot:latest'
+IMAGE_NAME := kwandre/fashion_few_shot:latest
 
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
@@ -9,6 +9,7 @@ build-docker: Pipfile Pipfile.lock Dockerfile
 	mkdir -p build
 	pipenv run pip freeze > build/requirements.txt
 	cd build && sudo docker build -f ../Dockerfile -t ${IMAGE_NAME} .
+	sudo docker push ${IMAGE_NAME}
 
 run:
 	sudo docker run --runtime nvidia -it --mount src=${CURDIR},target=/app,type=bind -u ${CURRENT_UID}:${CURRENT_GID} ${IMAGE_NAME} bash -c 'cd /app && bash'
