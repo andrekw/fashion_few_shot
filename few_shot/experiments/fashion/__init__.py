@@ -2,6 +2,7 @@ import sys
 
 import tensorflow as tf
 
+from . import config
 from few_shot.dataset import FewShotEpisodeGenerator
 from few_shot.dataset.image_pipeline import resize_img_pipeline_fn
 from few_shot.model import build_embedding_model, build_prototype_network
@@ -10,18 +11,18 @@ from few_shot.model import build_embedding_model, build_prototype_network
 def evaluate_fashion_few_shot(train_df,
                               val_df,
                               test_df,
-                              lr,
-                              n_shot,
-                              n_queries_train,
-                              n_queries_test,
-                              k_way_train,
-                              eps_per_epoch,
-                              n_epochs,
-                              k_way_test,
-                              test_eps,
-                              img_shape,
+                              lr=config.lr,
+                              n_shot=config.SHOTS[0],
+                              n_queries_train=config.N_QUERIES_TRAIN,
+                              n_queries_test=config.N_QUERIES_TEST,
+                              k_way_train=config.K_WAY_TRAIN,
+                              eps_per_epoch=config.EPS_PER_EPOCH,
+                              n_epochs=config.N_EPOCHS,
+                              k_way_test=config.TEST_K_WAY[0],
+                              test_eps=config.TEST_EPS,
+                              img_shape=config.IMG_SHAPE,
                               img_pipeline_fn=resize_img_pipeline_fn,
-                              patience=1,
+                              patience=config.PATIENCE,
                               opt=None,
                               callbacks=None,
                               restore_best_weights=True):
