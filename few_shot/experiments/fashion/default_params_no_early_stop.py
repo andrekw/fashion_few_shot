@@ -5,31 +5,17 @@ import pandas as pd
 import tensorflow as tf
 
 from few_shot.experiments.fashion import evaluate_fashion_few_shot, fashion_dfs
-from few_shot.dataset.utils import perturb_image
-from few_shot.model import build_embedding_model
-
-
-def augmented_img_pipeline_fn(img_shape):
-    def resize_img_pipeline(path_tensor):
-        img = tf.image.decode_image(tf.read_file(path_tensor),
-                                    dtype=tf.float32,
-                                    channels=img_shape[-1])
-        img = tf.image.resize_image_with_pad(img, *img_shape[:-1])
-        img.set_shape(img_shape)
-        img = perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
-        return tf.clip_by_value(img, 0, 1)
-
-    return resize_img_pipeline
-
 
 if __name__ == '__main__':
+    tf.enable_eager_execution()
+
     np.random.seed(23)
     tf.random.set_random_seed(29)
 
     SHOTS = [5, 1]
     TEST_K_WAY = [15, 5]
 
-    lr = 1e-2
+    lr = 1e-3
     n_queries_train = 5
     n_queries_test = 5
     k_way_train = 20
@@ -38,6 +24,8 @@ if __name__ == '__main__':
     test_eps = 1000
     img_shape = (160, 120, 3)  # in order to be able to fit everything in memory with a large k-way
 
+    callbacks = [
+                    tf.keras.callbacks.LearningRateScheduler(lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5), tf.keras.callbacks.EarlyStopping(patience=20, restore_best_weights=False) ]
     train_df, val_df, test_df = fashion_dfs('datasets/fashion-dataset',
                                             min_rows=n_queries_train + max(SHOTS),  # support and query
                                             n_val_classes=16)
@@ -62,13 +50,10 @@ if __name__ == '__main__':
                                            k_way_test=k_way_test,
                                            test_eps=test_eps,
                                            img_shape=img_shape,
-                                           patience=10,
-                                           img_pipeline_fn=augmented_img_pipeline_fn,
-                                           embedding_fn=lambda x: build_embedding_model(x, 5, 0.1),
-                                           reduce_lr_on_plateau=True)
+                                           callbacks=callbacks)
 
-        results.append(result)
+        results.append(results)
 
-    df = pd.DataFrame.from_records(results)
+    df = pd.DataFrame.from_records(result)
     print(df)
-    df.to_csv('fashion_augmentation_only_5_convs_results.csv')
+    df.to_csv('fashion_default_params_no_early_stop_results.csv')
