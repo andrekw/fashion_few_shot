@@ -4,6 +4,8 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 
+import few_shot.experiments.fashion.config as config
+
 
 def build_fashion_df(basedir, min_rows: int = 10):
     img_dir = os.path.join(basedir, 'images')
@@ -142,9 +144,9 @@ TEST_CLASSES = {
     }
 
 
-def fashion_dfs(dataset_path: str,
-                min_rows: int = 10,
-                n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def fashion_dfs(dataset_path: str = config.DATASET_PATH,
+                min_rows: int = config.MIN_ROWS,
+                n_val_classes: int = config.N_VAL_CLASSES) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Builds train, validation and test DataFrames from the kaggle fashion dataset.
 
     :param dataset_path: path to the dataset

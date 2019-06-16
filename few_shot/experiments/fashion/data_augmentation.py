@@ -13,9 +13,7 @@ if __name__ == '__main__':
     np.random.seed(23)
     tf.random.set_random_seed(29)
 
-    train_df, val_df, test_df = fashion_dfs(config.DATASET_PATH,
-                                            min_rows=config.K_WAY_TRAIN + max(config.SHOTS),  # support and query
-                                            n_val_classes=16)
+    train_df, val_df, test_df = fashion_dfs()
 
     results = []
     for n_shots, k_way_test in itertools.product(config.SHOTS, config.TEST_K_WAY):
