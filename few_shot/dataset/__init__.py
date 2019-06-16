@@ -1,34 +1,9 @@
-import os
-
 from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 import sklearn.preprocessing as skp
 import tensorflow as tf
-
-
-def create_omniglot_df(path: str) -> pd.DataFrame:
-    """Creates a DataFrame for Omniglot data based on its directory structure.
-
-    :param path: path to the base folder of the processed Omniglot dataset.
-    """
-    samples = []
-    for dirpath, dirnames, filenames in os.walk(path):
-        if not filenames:
-            continue
-        *_, alphabet, character = dirpath.split(os.path.sep)
-        class_name = f'{alphabet}.{character}'
-        for f in filenames:
-            samples.append(
-                {
-                    'class_name': class_name,
-                    'alphabet': alphabet,
-                    'character': character,
-                    'filepath': os.path.abspath(os.path.join(dirpath, f))
-                })
-
-    return pd.DataFrame.from_records(samples)
 
 
 class FewShotEpisodeGenerator(object):
@@ -80,7 +55,9 @@ class FewShotEpisodeGenerator(object):
 
         return tf.image.decode_image(tf.read_file(path_tensor), dtype=tf.float32)
 
-    def tf_iterator(self, image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
+    def tf_iterator(self,
+                    image_pipeline: Optional[Callable[[tf.Tensor], tf.Tensor]] = None,
+                    post_transform: Optional[Callable[[tf.Tensor], tf.Tensor]] = None) -> tf.data.Iterator:
         """Create a tensorflow iterator of batches of episodes from data.
 
         :param image_pipeline: a function mapping from a filename to an image data tensor.
@@ -101,10 +78,17 @@ class FewShotEpisodeGenerator(object):
                 )
 
         ds = tf.data.Dataset.from_generator(lambda: self,
-                                            (tf.string, tf.int32, tf.string, tf.int32))
+                                            (tf.string, tf.int32, tf.string, tf.int32),
+                                            (tf.TensorShape([self.n_shot * self.k_way]),
+                                             tf.TensorShape([self.n_shot * self.k_way]),
+                                             tf.TensorShape([self.q_queries * self.k_way]),
+                                             tf.TensorShape([self.q_queries * self.k_way])))
 
         ds = ds.map(prepare_outputs,
-                    num_parallel_calls=tf.data.experimental.AUTOTUNE).prefetch(
-                        buffer_size=tf.data.experimental.AUTOTUNE)
+                    num_parallel_calls=2)
 
-        return ds.batch(self.batch_size).make_one_shot_iterator()
+        if post_transform:
+            ds = ds.map(post_transform,
+                        num_parallel_calls=2)
+
+        return ds.batch(self.batch_size).prefetch(buffer_size=1).make_one_shot_iterator()

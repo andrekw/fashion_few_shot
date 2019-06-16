@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from tensorflow.keras.layers import (Conv2D, BatchNormalization, ReLU, MaxPooling2D,
-                                     Input, Flatten, Lambda, Softmax, Layer, TimeDistributed)
+                                     Input, Flatten, Lambda, Softmax, Layer, TimeDistributed, SpatialDropout2D)
 from tensorflow.keras.models import Model
 
 
@@ -10,13 +10,15 @@ K_WAY = 60
 N_QUERIES = 5
 
 
-def build_embedding_model(input_layer: Layer, n_convs=4):
+def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0):
     """Builds an embedding model as described in the Prototypical Networks paper."""
     embedding = input_layer  # need to keep a reference to the input
     for _ in range(n_convs):
         embedding = Conv2D(64, 3, data_format='channels_last', padding='same')(embedding)
         embedding = BatchNormalization()(embedding)
         embedding = ReLU()(embedding)
+        if dropout:
+            embedding = SpatialDropout2D(dropout)(embedding)
         embedding = MaxPooling2D(pool_size=(2, 2))(embedding)
     embedding = Flatten()(embedding)
     model = Model(input_layer, embedding)

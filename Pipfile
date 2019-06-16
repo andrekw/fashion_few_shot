@@ -15,6 +15,7 @@ numpy = "*"
 scikit-image = "*"
 scikit-learn = "*"
 jupyter = "*"
+scikit-optimize = "*"
 
 [requires]
 python_version = "3.6"

@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 
-from few_shot.dataset import FewShotEpisodeGenerator, create_omniglot_df
+from few_shot.dataset import FewShotEpisodeGenerator
+from few_shot.dataset.omniglot import create_omniglot_df
 from few_shot.model import build_embedding_model, build_prototype_network
 
 

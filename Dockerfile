@@ -11,3 +11,6 @@ ADD Pipfile* /tmp/
 WORKDIR /tmp
 RUN source /venv/bin/activate && PIPENV_VERBOSITY=-1 pipenv install --dev
 RUN chmod -R 755 /venv && rm /tmp/Pipfile*
+
+EXPOSE 8888
+EXPOSE 6006
