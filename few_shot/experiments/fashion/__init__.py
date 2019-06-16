@@ -130,6 +130,7 @@ def evaluate_fashion_few_shot(train_df,
     test_loss, test_acc = test_model.evaluate(test_it, steps=test_eps)
     args.update({
         'test_accuracy': test_acc,
-        'test_loss': test_loss
+        'test_loss': test_loss,
+        'training_batches': i
     })
     return args
