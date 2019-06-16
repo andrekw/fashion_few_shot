@@ -23,9 +23,23 @@ As a sanity check for my implementation, I've ran a 5-way, 1-shot experiment on 
 
 This takes around 20 minutes to train and evaluate on a GeForce 960.
 
-*** TODO Reference model
+*** Reference model
 
-**** TODO Image pipeline
+My first goal was to implement the same model and training strategy as in the miniImageNet experiment in the Protonets paper.
+
+**** Building a dataset
+
+The module ~few_shot.dataset.fashion~ has helper functions for building few-shot episodes from the fashion data. 
+~build_fashion_df~ loads the csv files and finds all rows with corresponding images.
+~TRAINING_CLASSES~ and ~TEST_CLASSES~ contain a random split of all classes with more than 10 examples for training and testing.
+The convenience function ~fashion_dfs~ builds train, validation and test sets. The validation set is composed of 16 random classes from the training set.
+~few_shot.dataset.FewShotEpisodeGenerator~ takes one of these DataFrames, handles loading and processing images, and yields batches of episodes.
+
+**** Image pipeline
+
+This dataset contains very high resolution images. Images are resized to a fixed size as part of the data fetching process. 
+The module ~few_shot.dataset.image_pipeline~ contains functions handling this part of the process.
+There is also a image augmentation pipeline in the same module. It translates, rotates, scales, flips horizontally, changes brightness randomly and adds random noise to the image.
 
 **** TODO Train / test split
 **** TODO Run the same embedding model as in the paper.
