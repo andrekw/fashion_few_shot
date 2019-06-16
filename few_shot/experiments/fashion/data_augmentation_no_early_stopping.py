@@ -24,12 +24,11 @@ if __name__ == '__main__':
                                            test_df=test_df,
                                            n_shot=n_shots,
                                            img_pipeline_fn=augmented_img_pipeline_fn,
-                                           patience=5,
-                                           restore_best_weights=True
-                                           )
+                                           patience=40,
+                                           restore_best_weights=False)
 
         results.append(result)
 
     df = pd.DataFrame.from_records(results)
     print(df)
-    df.to_csv('fashion_augmentation_only_more_patience_reducelronplateau_results.csv')
+    df.to_csv('fashion_augmentation_no_early_stopping_results.csv')

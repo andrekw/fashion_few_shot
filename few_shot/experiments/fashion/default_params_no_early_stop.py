@@ -4,15 +4,13 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from few_shot.experiments.fashion import config
+import few_shot.experiments.fashion.config as config
 from few_shot.experiments.fashion import evaluate_fashion_few_shot
 from few_shot.dataset.fashion import fashion_dfs
-from few_shot.dataset.image_pipeline import augmented_img_pipeline_fn
 
 if __name__ == '__main__':
     np.random.seed(23)
     tf.random.set_random_seed(29)
-
     train_df, val_df, test_df = fashion_dfs()
 
     results = []
@@ -23,13 +21,10 @@ if __name__ == '__main__':
                                            val_df=val_df,
                                            test_df=test_df,
                                            n_shot=n_shots,
-                                           img_pipeline_fn=augmented_img_pipeline_fn,
-                                           patience=5,
-                                           restore_best_weights=True
-                                           )
+                                           patience=20)
 
         results.append(result)
 
     df = pd.DataFrame.from_records(results)
     print(df)
-    df.to_csv('fashion_augmentation_only_more_patience_reducelronplateau_results.csv')
+    df.to_csv('fashion_default_params_no_early_stop_results.csv')

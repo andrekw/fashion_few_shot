@@ -8,6 +8,7 @@ from few_shot.experiments.fashion import config
 from few_shot.experiments.fashion import evaluate_fashion_few_shot
 from few_shot.dataset.fashion import fashion_dfs
 from few_shot.dataset.image_pipeline import augmented_img_pipeline_fn
+from few_shot.model import build_embedding_model
 
 if __name__ == '__main__':
     np.random.seed(23)
@@ -24,12 +25,13 @@ if __name__ == '__main__':
                                            test_df=test_df,
                                            n_shot=n_shots,
                                            img_pipeline_fn=augmented_img_pipeline_fn,
+                                           restore_best_weights=True,
                                            patience=5,
-                                           restore_best_weights=True
-                                           )
+                                           embedding_fn=lambda x: build_embedding_model(x, 5, 0.1),
+                                           reduce_lr_on_plateau=True)
 
         results.append(result)
 
     df = pd.DataFrame.from_records(results)
     print(df)
-    df.to_csv('fashion_augmentation_only_more_patience_reducelronplateau_results.csv')
+    df.to_csv('fashion_augmentation_only_5_convs_results.csv')
