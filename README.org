@@ -25,7 +25,7 @@ This takes around 20 minutes to train and evaluate on a GeForce 960.
 
 *** Reference model
 
-My first goal was to implement the same model and training strategy as in the miniImageNet experiment in the Protonets paper.
+My first goal was to implement the same model and training strategy as in the miniImageNet experiment in the Protonets paper. All experiments were evaluated in 1- and 5-shot, and 5- and 15-way episodes. Each episode holds 5 query points per class, meaning we can use all classes with 10 or more samples. I have also experimented with 15 queries per class, but that meant excluding even more classes and samples.
 
 **** Building a dataset
 
@@ -41,5 +41,22 @@ This dataset contains very high resolution images. Images are resized to a fixed
 The module ~few_shot.dataset.image_pipeline~ contains functions handling this part of the process.
 There is also a image augmentation pipeline in the same module. It translates, rotates, scales, flips horizontally, changes brightness randomly and adds random noise to the image.
 
-**** TODO Train / test split
-**** TODO Run the same embedding model as in the paper.
+**** Run experiments
+
+The module ~few_shot.experiments.fashion~ contains the experiments I've ran. Each submodule is a different experiment with different settings. ~few_shot.experiments.fashion.config~ contains default settings.
+
+- ~default_params.py~ follows the training procedure from the paper: a 4-convolutional-block model trained with Adam and early stopping;
+- ~data_augmentation.py~ adds data augmentation to the procedure above and results in a slight improvement in the 5-shot setting, but is slightly worse in 1-shot;
+- ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt.
+
+
+
+*** To dos
+
+**** No early stopping
+
+**** Hyperparameter search
+
+**** Class augmentations
+
+**** Other models
