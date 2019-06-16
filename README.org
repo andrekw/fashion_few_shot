@@ -65,7 +65,7 @@ Especially since the images in this set are professionally-taken, arificial vari
 **** No early stopping
 
 - Early stopping seems to be very aggressive.
-The paper just mentions they /"...train until validation loss stops improving."/ (p. 6).
+The paper just mentions they "...train until validation loss stops improving." (p. 6).
 This seems too aggressive in my implementation, it stops training after only 300-400 episodes.
 I want to let it run longer and retrieve the best-performing weights over a longer run.
 
