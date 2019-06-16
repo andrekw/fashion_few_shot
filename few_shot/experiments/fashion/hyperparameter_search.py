@@ -20,6 +20,7 @@ def few_shot_optimize(train_df,
                       test_df,
                       n_shot,
                       k_way_test,
+                      k_way_train = config.K_WAY_TRAIN,
                       n_queries_train=config.N_QUERIES_TRAIN,
                       n_queries_test=config.N_QUERIES_TEST,
                       eps_per_epoch=config.EPS_PER_EPOCH,
@@ -51,7 +52,7 @@ def few_shot_optimize(train_df,
             raise ValueError('Unsupported optimizer_type')
 
         if k_way_train_type == 'large':
-            cur_k_train = config.K_WAY_TRAIN
+            cur_k_train = k_way_train
         elif k_way_train_type == 'same':
             cur_k_train = k_way_test
         else:
@@ -130,7 +131,8 @@ if __name__ == '__main__':
                                    val_df=val_df,
                                    test_df=test_df,
                                    n_shot=n_shots,
-                                   k_way_test=k_way_test)
+                                   k_way_test=k_way_test,
+                                   k_way_train=25)
 
         results.append(result)
 
