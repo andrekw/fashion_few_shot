@@ -8,6 +8,8 @@ import tensorflow as tf
 from few_shot.experiments.fashion import evaluate_fashion_few_shot
 from few_shot.dataset.fashion import fashion_dfs
 from few_shot.dataset.image_pipeline import augmented_img_pipeline_fn
+from few_shot.model import build_embedding_model
+
 
 MAX_SHOTS = 5
 
@@ -32,11 +34,14 @@ def few_shot_optimize(train_df,
         skopt.space.Categorical(name='optimizer_type', categories=('adam', 'rmsprop')),
         skopt.space.Real(name='learning_rate', low=1e-3, high=3),
         skopt.space.Categorical(name='k_way_train_type', categories=('large', 'same')),
+        skopt.space.Integer(name='n_convs', low=4, high=6),
+        skopt.space.Real(name='dropout', low=0.0, high=0.2),
         skopt.space.Integer(name='early_stop_patience', low=1, high=5)
         ]
 
     @skopt.utils.use_named_args(dimensions)
-    def evaluate_parameters(optimizer_type, learning_rate, k_way_train_type, early_stop_patience):
+    def evaluate_parameters(optimizer_type, learning_rate, k_way_train_type, n_convs, dropout, early_stop_patience):
+        print(optimizer_type, learning_rate, k_way_train_type, n_convs, dropout, early_stop_patience)
         if optimizer_type == 'adam':
             optimizer = tf.keras.optimizers.Adam(lr=learning_rate)
         elif optimizer_type == 'rmsprop':
@@ -52,6 +57,8 @@ def few_shot_optimize(train_df,
             raise ValueError('Unsupported k value')
         img_fn = augmented_img_pipeline_fn
 
+        embedding_fn = lambda x: build_embedding_model(x, n_convs, dropout)
+
         result = evaluate_fashion_few_shot(train_df=experiment_train_df,
                                            val_df=experiment_val_df,
                                            test_df=val_df,
@@ -63,17 +70,20 @@ def few_shot_optimize(train_df,
                                            eps_per_epoch=eps_per_epoch,
                                            n_epochs=n_epochs,
                                            k_way_test=k_way_test,
-                                           test_eps=test_eps,
+                                           test_eps=eps_per_epoch,
                                            img_shape=img_shape,
                                            opt=optimizer,
-                                           img_pipeline_fn=img_fn)
+                                           img_pipeline_fn=img_fn,
+                                           embedding_fn=embedding_fn,
+                                           patience=early_stop_patience
+        )
         result['optimizer'] = optimizer_type
 
         return result['test_loss']
 
     res = skopt.gp_minimize(evaluate_parameters, dimensions, n_calls=10, n_random_starts=5)
 
-    best_opt, best_lr, best_k_way_type, best_patience = res.x
+    best_opt, best_lr, best_k_way_type, best_convs, best_dropout, best_patience= res.x
 
     print(res.x)
 
@@ -109,8 +119,8 @@ if __name__ == '__main__':
     np.random.seed(23)
     tf.random.set_random_seed(29)
 
-    SHOTS = [5, 1]
-    TEST_K_WAY = [15, 5]
+    SHOTS = [5]
+    TEST_K_WAY = [15]
 
     lr = 1e-3
     n_queries_train = 5
