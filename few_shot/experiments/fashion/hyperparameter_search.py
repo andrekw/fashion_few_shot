@@ -58,8 +58,6 @@ def few_shot_optimize(train_df,
             raise ValueError('Unsupported k value')
         img_fn = augmented_img_pipeline_fn
 
-        embedding_fn = lambda x: build_embedding_model(x, n_convs, dropout)
-
         result = evaluate_fashion_few_shot(train_df=experiment_train_df,
                                            val_df=experiment_val_df,
                                            test_df=val_df,
@@ -75,16 +73,15 @@ def few_shot_optimize(train_df,
                                            img_shape=img_shape,
                                            opt=optimizer,
                                            img_pipeline_fn=img_fn,
-                                           embedding_fn=embedding_fn,
-                                           patience=early_stop_patience
-        )
+                                           embedding_fn=lambda x: build_embedding_model(x, n_convs, dropout),
+                                           patience=early_stop_patience)
         result['optimizer'] = optimizer_type
 
         return result['test_loss']
 
     res = skopt.gp_minimize(evaluate_parameters, dimensions, n_calls=10, n_random_starts=5)
 
-    best_opt, best_lr, best_k_way_type, best_convs, best_dropout, best_patience= res.x
+    best_opt, best_lr, best_k_way_type, best_convs, best_dropout, best_patience = res.x
 
     print(res.x)
 
@@ -98,7 +95,7 @@ def few_shot_optimize(train_df,
     result = evaluate_fashion_few_shot(train_df=train_df,
                                        val_df=val_df,
                                        test_df=test_df,
-                                       lr=lr,
+                                       lr=best_lr,
                                        n_shot=n_shots,
                                        n_queries_train=n_queries_train,
                                        n_queries_test=n_queries_test,
