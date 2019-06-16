@@ -1,5 +1,7 @@
 import os
+from typing import Tuple
 
+import numpy as np
 import pandas as pd
 
 
@@ -138,3 +140,28 @@ TEST_CLASSES = {
     'Churidar',
     'Travel Accessory'
     }
+
+
+def fashion_dfs(dataset_path: str,
+                min_rows: int = 10,
+                n_val_classes: int = 5) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Builds train, validation and test DataFrames from the kaggle fashion dataset.
+
+    :param dataset_path: path to the dataset
+    :param min_rows: required number of images for the class to be added to the DataFrames
+    :param n_val_classes: how many classes to use in the validation set
+    :returns: a tuple of train, validation and test DataFrames
+    """
+    # TODO: use new validation format
+    df = build_fashion_df(dataset_path, min_rows)
+    print(df.class_name.nunique())
+
+    valid_train_classes = TRAINING_CLASSES.intersection(df.class_name.unique())
+
+    val_classes = set(np.random.choice(list(valid_train_classes), n_val_classes, replace=False))
+    train_df = df[df.class_name.isin(TRAINING_CLASSES - val_classes)]
+    val_df = df[df.class_name.isin(val_classes)]
+
+    test_df = df[df.class_name.isin(TEST_CLASSES)]
+
+    return train_df, val_df, test_df

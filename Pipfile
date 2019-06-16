@@ -9,7 +9,7 @@ pytest = "*"
 pytest-flake8 = "*"
 
 [packages]
-tensorflow-gpu = "*"
+tensorflow = "*"
 pandas = "*"
 numpy = "*"
 scikit-image = "*"

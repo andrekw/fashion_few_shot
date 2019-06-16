@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from few_shot.experiments.fashion import evaluate_fashion_few_shot, fashion_dfs
+from few_shot.experiments.fashion import evaluate_fashion_few_shot
+from few_shot.dataset.fashion import fashion_dfs
 
 if __name__ == '__main__':
     np.random.seed(23)
