@@ -30,9 +30,12 @@ def test_generator(n, q, k, df):
         # first make sure that we get the number of elements we expect
         assert len(support_x) == n * k
         assert len(support_y) == n * k
+
         assert len(query_x) == q * k
         assert len(query_y) == q * k
 
         # then make sure we get batch class ids (not the global class id), otherwise the one-hot encoding will break
+        assert len(set(support_y)) == k
+        assert len(set(query_y)) == k
         assert max(support_y) < k
         assert max(query_y) < k
