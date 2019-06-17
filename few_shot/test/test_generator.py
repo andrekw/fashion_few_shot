@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import pytest
-import uuid
 
 from few_shot.dataset import FewShotEpisodeGenerator
 
@@ -9,8 +8,10 @@ from few_shot.dataset import FewShotEpisodeGenerator
 N_CLASSES = 1000
 N_SAMPLES = 100 * N_CLASSES
 
-def create_df():
-    filenames = [uuid.uuid4().hex for _ in range(N_SAMPLES)]
+
+@pytest.fixture
+def df():
+    filenames = np.random.random_sample(N_SAMPLES).astype('str')
     classes = np.random.randint(0, N_CLASSES, size=N_SAMPLES)
 
     return pd.DataFrame.from_dict({'filepath': filenames, 'class_name': classes})
@@ -19,7 +20,6 @@ def create_df():
 @pytest.mark.parametrize('n', [1, 5])
 @pytest.mark.parametrize('q', [5, 10])
 @pytest.mark.parametrize('k', [5, 15, 50])
-@pytest.mark.parametrize('df', [create_df()])
 def test_generator(n, q, k, df):
     gen = FewShotEpisodeGenerator(df, 1000, n, k, q)
     it = iter(gen)
