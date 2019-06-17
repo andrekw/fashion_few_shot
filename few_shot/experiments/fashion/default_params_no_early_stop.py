@@ -21,6 +21,7 @@ if __name__ == '__main__':
                                            val_df=val_df,
                                            test_df=test_df,
                                            n_shot=n_shots,
+                                           k_way_test=k_way_test,
                                            patience=20)
 
         results.append(result)
