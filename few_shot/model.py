@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from tensorflow.keras.layers import (Conv2D, BatchNormalization, ReLU, MaxPooling2D,
-                                     Input, Flatten, Lambda, Softmax, Layer, TimeDistributed, SpatialDropout2D)
+                                     Input, Flatten, Lambda, Softmax, Layer, SpatialDropout2D)
 from tensorflow.keras.models import Model
 
 
@@ -15,7 +15,7 @@ def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float =
     embedding = input_layer  # need to keep a reference to the input
     for _ in range(n_convs):
         embedding = Conv2D(64, 3, data_format='channels_last', padding='same')(embedding)
-        embedding = BatchNormalization(momentum=0.9, epsilon=1e-5)(embedding)
+        embedding = BatchNormalization(momentum=0.9, epsilon=1e-8)(embedding)
         embedding = ReLU()(embedding)
         if dropout:
             embedding = SpatialDropout2D(dropout)(embedding)
@@ -45,7 +45,7 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     # our output should be (batch, q_queries, k_way, embedding_dims)
     query_embedding = tf.expand_dims(query_embedding, axis=-2)
     # we reshape the centroids to make broadcasting work
-    class_centroids = tf.expand_dims(tf.transpose(class_centroids, [0, 2, 1]), axis=-3)
+    class_centroids = tf.expand_dims(tf.linalg.transpose(class_centroids), axis=-3)
     sq_distance = tf.squared_difference(query_embedding, class_centroids)
 
     # reduce over the embedding dimension to find the distance between each query and class centroid
@@ -54,16 +54,16 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
 
 
 def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model):
+    """Builds a prototype network based on an image embedding module."""
     embedding_in = Input(shape=input_shape)
     embedding_model = embedding_model_fn(embedding_in)
 
-    support_in = Input(shape=(n_shot * k_way,) + input_shape, name='support_input')
-    query_in = Input(shape=(n_queries * k_way,) + input_shape, name='query_input')
-    support_labels = Input(shape=(n_shot * k_way, k_way), name='support_labels')
+    support_in = Input(shape=input_shape, name='support_input')
+    query_in = Input(shape=input_shape, name='query_input')
+    support_labels = Input(shape=(k_way,), name='support_labels')
 
-    # TimeDistributed is a convenient way to apply the same embedding model to high-dimensional batches
-    support_embedding = TimeDistributed(embedding_model)(support_in)
-    query_embedding = TimeDistributed(embedding_model)(query_in)
+    support_embedding = embedding_model(support_in)
+    query_embedding = embedding_model(query_in)
 
     # Lambda layers only accept a sequence of tensors as input
     class_centroids = Lambda(lambda x: centroids(*x, n_shot))((support_embedding, support_labels))
