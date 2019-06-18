@@ -1,5 +1,5 @@
-,eps_per_epoch,img_shape,k_way_test,k_way_train,lr,n_epochs,n_queries_test,n_queries_train,n_shot,patience,restore_best_weights,test_accuracy,test_eps,test_loss
-0,100,"(160, 120, 3)",15,20,0.001,100,5,5,5,1,True,0.24186666309833527,1000,1.8566481508870254
-1,100,"(160, 120, 3)",5,20,0.001,100,5,5,5,1,True,0.7207599878311157,1000,0.040408925278884456
-2,100,"(160, 120, 3)",15,20,0.001,100,5,5,1,1,True,0.20281332731246948,1000,2.3315546892676333
-3,100,"(160, 120, 3)",5,20,0.001,100,5,5,1,1,True,0.7023599743843079,1000,0.091651701430124
+,embedding_fn,eps_per_epoch,img_shape,k_way_test,k_way_train,lr,n_epochs,n_queries_test,n_queries_train,n_shot,patience,reduce_lr_on_plateau,reduction_factor,restore_best_weights,test_accuracy,test_eps,test_loss,training_batches,validation_metric
+0,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",15,30,0.001,100,1,5,5,1,False,0.75,True,0.5071333050727844,1000,3.127614816069603,2,loss
+1,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",5,30,0.001,100,1,5,5,1,False,0.75,True,0.6949999928474426,1000,3.3711062024128395,4,loss
+2,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",15,30,0.001,100,1,5,1,1,False,0.75,True,0.36446666717529297,1000,6.973711999177933,2,loss
+3,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",5,30,0.001,100,1,5,1,1,False,0.75,True,0.5231999754905701,1000,3.707553806173848,2,loss

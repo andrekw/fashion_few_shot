@@ -1,16 +1,15 @@
-FROM tensorflow/tensorflow:nightly-gpu-py3
+FROM nvidia/cuda:10.0-cudnn7-runtime-ubuntu18.04
 
-RUN apt-get -y install python3-venv
+RUN apt-get update && apt-get install -y python3 python3-pip
 
-RUN python3 -m venv /venv
+ENV LANG C.UTF-8
+ENV HOME /tmp
 
-RUN /venv/bin/pip3 install pipenv
-
-ADD Pipfile* /tmp/
-
+COPY requirements.txt /tmp/
 WORKDIR /tmp
-RUN source /venv/bin/activate && PIPENV_VERBOSITY=-1 pipenv install --dev
-RUN chmod -R 755 /venv && rm /tmp/Pipfile*
+RUN pip3 install -r requirements.txt
+
+RUN echo export PS1="\"\[\e[0;37m\]few_shot: \[\e[0;31m\]\w\[\e[0;31m\] > \[\e[0m\]\"" > /etc/bash.bashrc && chmod a+rwx /etc/bash.bashrc
 
 EXPOSE 8888
 EXPOSE 6006
