@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate=0.8, is_training=False):
+def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate=0.5, is_training=False):
     p = tf.convert_to_tensor(p)
     is_training = tf.convert_to_tensor(is_training)
     shape = tf.shape(X)
@@ -33,8 +33,7 @@ def perturb_image(X, p, flipx=True, flipy=True, scale=1.2, rot=3.14/4, translate
     return tf.cond(is_training,
                    lambda: tf.contrib.image.transform(
                        brightened,
-                       tf.contrib.image.compose_transforms(*transforms), interpolation='BILINEAR')
-                   + tf.random_normal(X.shape, stddev=0.01),
+                       tf.contrib.image.compose_transforms(*transforms), interpolation='BILINEAR'),
                    lambda: X)
 
 
@@ -45,7 +44,7 @@ def augmented_img_pipeline_fn(img_shape):
                                     channels=img_shape[-1])
         img = tf.image.resize_image_with_pad(img, *img_shape[:-1])
         img.set_shape(img_shape)
-        img = perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/6)
+        img = perturb_image(img, 0.5, is_training=True, translate=1, flipy=False, rot=3.14/10)
         return tf.clip_by_value(img, 0, 1)
 
     return resize_img_pipeline

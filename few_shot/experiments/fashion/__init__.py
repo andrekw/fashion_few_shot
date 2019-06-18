@@ -11,14 +11,14 @@ from few_shot.model import build_embedding_model, build_prototype_network
 def evaluate_fashion_few_shot(train_df,
                               val_df,
                               test_df,
+                              n_shot,
+                              k_way_test,
                               lr=config.lr,
-                              n_shot=config.SHOTS[0],
                               n_queries_train=config.N_QUERIES_TRAIN,
                               n_queries_test=config.N_QUERIES_TEST,
                               k_way_train=config.K_WAY_TRAIN,
                               eps_per_epoch=config.EPS_PER_EPOCH,
                               n_epochs=config.N_EPOCHS,
-                              k_way_test=config.TEST_K_WAY[0],
                               test_eps=config.TEST_EPS,
                               img_shape=config.IMG_SHAPE,
                               img_pipeline_fn=resize_img_pipeline_fn,
@@ -28,7 +28,8 @@ def evaluate_fashion_few_shot(train_df,
                               restore_best_weights=True,
                               embedding_fn=build_embedding_model,
                               reduce_lr_on_plateau=False,
-                              reduction_factor=0.75):
+                              reduction_factor=0.75,
+                              validation_metric='loss'):
     args = locals()
     args.pop('train_df')
     args.pop('test_df')
@@ -57,7 +58,7 @@ def evaluate_fashion_few_shot(train_df,
                                            n_queries_test)
 
     train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
-    val_it = val_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
+    val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
     embedding_model = embedding_fn(embedding_input)
@@ -108,8 +109,12 @@ def evaluate_fashion_few_shot(train_df,
         print('Validation:')
         val_loss, val_acc = test_model.evaluate(val_it, steps=eps_per_epoch)
         print(f'epoch {i}: val_loss: {val_loss}, val_cat_accuracy: {val_acc}')
-        if val_loss < best_val_loss:
+        if validation_metric == 'loss' and val_loss < best_val_loss:
             best_val_loss = val_loss
+            best_weights = model.get_weights()
+            curr_step = 0
+        elif validation_metric == 'accuracy' and val_acc > best_val_acc:
+            best_val_acc = val_acc
             best_weights = model.get_weights()
             curr_step = 0
         else:

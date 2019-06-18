@@ -20,7 +20,8 @@ if __name__ == '__main__':
         result = evaluate_fashion_few_shot(train_df=train_df,
                                            val_df=val_df,
                                            test_df=test_df,
-                                           n_shot=n_shots)
+                                           n_shot=n_shots,
+                                           k_way_test=k_way_test)
 
         results.append(result)
 

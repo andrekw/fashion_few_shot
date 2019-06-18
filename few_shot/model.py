@@ -15,7 +15,7 @@ def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float =
     embedding = input_layer  # need to keep a reference to the input
     for _ in range(n_convs):
         embedding = Conv2D(64, 3, data_format='channels_last', padding='same')(embedding)
-        embedding = BatchNormalization()(embedding)
+        embedding = BatchNormalization(momentum=0.9, epsilon=1e-5)(embedding)
         embedding = ReLU()(embedding)
         if dropout:
             embedding = SpatialDropout2D(dropout)(embedding)

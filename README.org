@@ -52,22 +52,18 @@ It translates, rotates, scales, flips horizontally, changes brightness randomly 
 The module ~few_shot.experiments.fashion~ contains the experiments I've ran. Each submodule is a different experiment with different settings. ~few_shot.experiments.fashion.config~ contains default settings.
 
 - ~default_params.py~ follows the training procedure from the paper: a 4-convolutional-block model trained with Adam and early stopping;
-- ~data_augmentation.py~ adds data augmentation to the procedure above and results in a slight improvement in the 5-shot setting, but is slightly worse in 1-shot;
-- ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt. It currently supports tuning the optimizer (Adam or RMSprop), the learning rate, the number of convolutional blocks, dropout rate, early stopping patience, and using a normal or increased k for training.
+- ~data_augmentation.py~ adds data augmentation to the procedure above and results in a measurable improvement over the baseline;
+- ~data_augmentation_no_early_stopping.py~ lets the data augmentation model run for longer.
+It does not seem to add any noticeable improvement;
+- ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt.
+It currently supports tuning the optimizer (Adam or RMSprop), the learning rate, the number of convolutional blocks, dropout rate, early stopping patience, and using a normal or increased k for training.
 
 *** To dos
 
 **** Tuning image augmentation
 
-The augmentation might be too strong and the model might have too hard of a time learning (Too much noise, brightness changes, etc).
-Especially since the images in this set are professionally-taken, arificial variation in exposure, for example, might be actually detrimental.
-
-**** No early stopping
-
-- Early stopping seems to be very aggressive.
-The paper just mentions they "...train until validation loss stops improving." (p. 6).
-This seems too aggressive in my implementation, it stops training after only 300-400 episodes.
-I want to let it run longer and retrieve the best-performing weights over a longer run.
+Right now the rotation leaves black corners in the images, and all operations are done on final-sized images.
+Cleaning up this process might make augmentation even more beneficial.
 
 **** Hyperparameter search
 

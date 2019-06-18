@@ -58,7 +58,7 @@ def run_omniglot_experiment():
               shuffle=False,
               callbacks=[
                   tf.keras.callbacks.LearningRateScheduler(
-                      lambda i, lr: lr if i % (2000//eps_per_epoch) else lr * 0.5),
+                      lambda i, lr: lr if not i or i % (2000//eps_per_epoch) else lr * 0.5),
                   tf.keras.callbacks.TensorBoard(
                       log_dir=f'experiments/logs/omniglot_lr={lr}_n={n_shot}_k={k_way_train}_q={n_queries_train}')
               ])

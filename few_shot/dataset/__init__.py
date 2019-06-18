@@ -47,6 +47,11 @@ class FewShotEpisodeGenerator(object):
                 query_X += k_query['filepath'].tolist()
                 query_y += k_query['class_id'].tolist()
 
+            # we map a global class id to a local id so we can one-hot encode it
+            episode_class_labeler = skp.LabelEncoder()
+            support_y = episode_class_labeler.fit_transform(support_y)
+            query_y = episode_class_labeler.transform(query_y)
+
             yield support_X, support_y, query_X, query_y
 
     @staticmethod

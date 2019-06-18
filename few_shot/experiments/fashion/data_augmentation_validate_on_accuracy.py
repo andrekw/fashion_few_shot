@@ -24,10 +24,13 @@ if __name__ == '__main__':
                                            test_df=test_df,
                                            n_shot=n_shots,
                                            k_way_test=k_way_test,
-                                           img_pipeline_fn=augmented_img_pipeline_fn)
+                                           img_pipeline_fn=augmented_img_pipeline_fn,
+                                           patience=20,
+                                           restore_best_weights=True,
+                                           validation_metric='accuracy')
 
         results.append(result)
 
     df = pd.DataFrame.from_records(results)
     print(df)
-    df.to_csv('fashion_augmentation_only_results.csv')
+    df.to_csv('fashion_augmentation_val_accuracy_results.csv')
