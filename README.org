@@ -28,7 +28,7 @@ This takes around 20 minutes to train and evaluate on a GeForce 960.
 
 My first goal was to implement the same model and training strategy as in the miniImageNet experiment in the Protonets paper.
 All experiments were evaluated in 1- and 5-shot, and 5- and 15-way episodes.
-Each episode holds 5 query points per class, meaning we can use all classes with 10 or more samples.
+Each training episode holds 5 query points per class, meaning we can use all classes with 10 or more samples.
 I have also experimented with 15 queries per class, but rejected that approach since it meant excluding even more classes and samples.
 
 **** Building a dataset
