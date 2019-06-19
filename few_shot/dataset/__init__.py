@@ -81,7 +81,7 @@ class FewShotEpisodeGenerator(object):
                  decode_image_tensor(x_q)),
                 tf.one_hot(y_q, self.k_way)
                 )
-        with tf.device('cpu:0'):
+        with tf.device('cpu:*'):
             ds = tf.data.Dataset.from_generator(lambda: self,
                                                 (tf.string, tf.int32, tf.string, tf.int32),
                                                 (tf.TensorShape([self.n_shot * self.k_way]),
@@ -98,4 +98,4 @@ class FewShotEpisodeGenerator(object):
 
             ds = ds.prefetch(buffer_size=10)
 
-        return ds.prefetch(buffer_size=1).make_one_shot_iterator()
+        return ds.prefetch(buffer_size=4).make_one_shot_iterator()
