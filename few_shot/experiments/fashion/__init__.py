@@ -29,7 +29,8 @@ def evaluate_fashion_few_shot(train_df,
                               embedding_fn=build_embedding_model,
                               reduce_lr_on_plateau=False,
                               reduction_factor=0.75,
-                              validation_metric='loss'):
+                              validation_metric='loss',
+                              post_processing_fn=None):
     args = locals()
     args.pop('train_df')
     args.pop('test_df')
@@ -57,7 +58,8 @@ def evaluate_fashion_few_shot(train_df,
                                            k_way_test,
                                            n_queries_test)
 
-    train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
+    train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape),
+                                         post_transform=post_processing_fn)
     val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
