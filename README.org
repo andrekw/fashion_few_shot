@@ -55,7 +55,6 @@ The module ~few_shot.experiments.fashion~ contains the experiments I've ran. Eac
 This is the baseline;
 - ~data_augmentation.py~ adds data augmentation to the procedure above.
 It does not seem to add any noticeable improvement;
-
 - ~data_augmentation_no_early_stopping.py~ lets the data augmentation model run for longer: the randomness in the augmentation might make learning very erratic, especially in the earlier steps.
 Running it lower might give the model a chance to overcome the extra difficulty added by the augmentation.
 This results in a measurable improvement over the baseline;
