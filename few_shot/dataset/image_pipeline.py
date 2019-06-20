@@ -86,5 +86,4 @@ def class_augmentation_fn(k, p=0.5):
 
         return (sx, sy, qx), qy
 
-
     return class_augmentation
