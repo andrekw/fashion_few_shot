@@ -67,14 +67,24 @@ def class_augmentation_fn(k, p=0.5):
     :param p: probability of flipping a class.
     """
 
-    def class_augmentation(images, labels):
+    def class_augmentation(input_tuple, qy):
         """Augments a dataset by creating new classes by randomly rotating each class by 180 degrees.
-        :param images: batch image tensor.
-        :param labels: one-hot encoded labels tensor.
+        :param input_tuple: (support_x, support_y, query_x) tuple
+        :param qy: one-hot encoded query labels tensor.
         """
+        sx, sy, qx = input_tuple
+
         flip_p = tf.random.uniform([k])
 
-        img_flip_p = tf.gather(flip_p, tf.argmax(labels, axis=-1))
+        sx_flip_p = tf.gather(flip_p, tf.argmax(sy, axis=-1))
 
-        return tf.where(img_flip_p < p, tf.image.rot90(images, k=2), images)
-        
+        sx = tf.where(sx_flip_p < p, tf.image.rot90(sx, k=2), sx)
+
+        qx_flip_p = tf.gather(flip_p, tf.argmax(qy, axis=-1))
+
+        qx = tf.where(qx_flip_p < p, tf.image.rot90(qx, k=2), qx)
+
+        return (sx, sy, qx), qy
+
+
+    return class_augmentation

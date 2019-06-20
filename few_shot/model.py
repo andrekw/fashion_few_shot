@@ -1,4 +1,6 @@
 import tensorflow as tf
+import tensorflow.contrib.image
+import tensorflow_hub as hub
 
 from tensorflow.keras.layers import (Conv2D, BatchNormalization, ReLU, MaxPooling2D,
                                      Input, Flatten, Lambda, Softmax, Layer, SpatialDropout2D)
@@ -8,6 +10,23 @@ from tensorflow.keras.models import Model
 N_SHOT = 1
 K_WAY = 60
 N_QUERIES = 5
+
+
+class AugLayer(tf.keras.layers.Layer):
+    def __init__(self, output_dim, **kwargs):
+        self.output_dim = output_dim
+        super(AugLayer, self).__init__(**kwargs)
+    def build(self, input_shape):
+        self.augmentation_module = hub.Module(
+            'https://tfhub.dev/google/image_augmentation/flipx_crop_rotate_color/1')
+        super(AugLayer, self).build(input_shape)
+    def call(self, x, training=None):
+        params = {
+            'images': x,
+            'image_size': self.output_dim,
+            'augmentation': bool(True)
+        }
+        return self.augmentation_module(params, signature='from_decoded_images')
 
 
 def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0):
@@ -53,10 +72,15 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     return -tf.reduce_sum(sq_distance, axis=-1)
 
 
-def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model):
+def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model, augment=False):
     """Builds a prototype network based on an image embedding module."""
     embedding_in = Input(shape=input_shape)
+    if augment:
+        aug_layer = AugLayer(input_shape[:-1])
+        embedding_in = aug_layer(embedding_in)
     embedding_model = embedding_model_fn(embedding_in)
+
+
 
     support_in = Input(shape=input_shape, name='support_input')
     query_in = Input(shape=input_shape, name='query_input')
