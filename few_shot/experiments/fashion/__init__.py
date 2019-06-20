@@ -30,7 +30,8 @@ def evaluate_fashion_few_shot(train_df,
                               reduce_lr_on_plateau=False,
                               reduction_factor=0.75,
                               validation_metric='loss',
-                              post_processing_fn=None):
+                              post_processing_fn=None,
+                              augment=False):
     args = locals()
     args.pop('train_df')
     args.pop('test_df')
@@ -68,6 +69,7 @@ def evaluate_fashion_few_shot(train_df,
                                     k_way_train,
                                     n_queries_train,
                                     img_shape,
+                                    augment=augment,
                                     embedding_model_fn=lambda x: embedding_model)
 
     if not opt:
