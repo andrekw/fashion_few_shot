@@ -7,7 +7,7 @@ TEST_EPS = 1000
 PATIENCE = 1
 
 N_QUERIES_TRAIN = 5
-N_QUERIES_TEST = 5
+N_QUERIES_TEST = 1
 K_WAY_TRAIN = 30
 
 DATASET_PATH = 'datasets/fashion-dataset'
