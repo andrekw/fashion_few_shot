@@ -1,5 +1,5 @@
 ,embedding_fn,eps_per_epoch,img_shape,k_way_test,k_way_train,lr,n_epochs,n_queries_test,n_queries_train,n_shot,patience,reduce_lr_on_plateau,reduction_factor,restore_best_weights,test_accuracy,test_eps,test_loss,training_batches,validation_metric
-0,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",15,30,0.001,100,1,5,5,1,False,0.75,True,0.5071333050727844,1000,3.127614816069603,2,loss
-1,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",5,30,0.001,100,1,5,5,1,False,0.75,True,0.6949999928474426,1000,3.3711062024128395,4,loss
-2,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",15,30,0.001,100,1,5,1,1,False,0.75,True,0.36446666717529297,1000,6.973711999177933,2,loss
-3,<function build_embedding_model at 0x7fd65fa1b268>,100,"(160, 120, 3)",5,30,0.001,100,1,5,1,1,False,0.75,True,0.5231999754905701,1000,3.707553806173848,2,loss
+0,<function build_embedding_model at 0x7f7967db91e0>,100,"(160, 120, 3)",15,30,0.001,100,1,5,5,1,False,0.75,True,0.6996666789054871,1000,4.678348967242055,10,loss
+1,<function build_embedding_model at 0x7f7967db91e0>,100,"(160, 120, 3)",5,30,0.001,100,1,5,5,1,False,0.75,True,0.8083999752998352,1000,2.992539510409781,2,loss
+2,<function build_embedding_model at 0x7f7967db91e0>,100,"(160, 120, 3)",15,30,0.001,100,1,5,1,1,False,0.75,True,0.49133333563804626,1000,8.12741048336029,6,loss
+3,<function build_embedding_model at 0x7f7967db91e0>,100,"(160, 120, 3)",5,30,0.001,100,1,5,1,1,False,0.75,True,0.6353999972343445,1000,5.822957225566958,2,loss

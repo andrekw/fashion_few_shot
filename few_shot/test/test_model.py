@@ -15,7 +15,7 @@ different enough to fail tests.
 TEST_DTYPE = tf.float64
 
 
-@pytest.mark.parametrize("eps_per_batch", [1, 4])
+@pytest.mark.parametrize('eps_per_batch', [1, 4])
 @pytest.mark.parametrize("n_shot", [1, 5])
 @pytest.mark.parametrize("n_classes", [5, 15, 60])
 @pytest.mark.parametrize("embedding_dims", [60, 300])
@@ -65,8 +65,8 @@ def test_model(n, k, q, img_shape):
     opt = tf.keras.optimizers.Adam(lr=1e-3)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-    # we have q * k query points (q per class) and we compare its distance to each class centroid
-    assert model.output_shape == (None, q * k, k)
+    # we have a dynamic number of query points (q per class) and we compare its distance to each class centroid
+    assert model.output_shape == (None, k)
 
 
 @pytest.mark.parametrize('eps_per_batch', [1, 5])

@@ -1,0 +1,5 @@
+,embedding_fn,eps_per_epoch,img_shape,k_way_test,k_way_train,lr,n_epochs,n_queries_test,n_queries_train,n_shot,patience,reduce_lr_on_plateau,reduction_factor,restore_best_weights,test_accuracy,test_eps,test_loss,training_batches,validation_metric
+0,<function <lambda> at 0x7f889fd5fbf8>,100,"(160, 120, 3)",15,30,0.001,100,1,5,5,5,True,0.75,True,0.7039999961853027,1000,0.9904445116370917,60,loss
+1,<function <lambda> at 0x7f8880429400>,100,"(160, 120, 3)",5,30,0.001,100,1,5,5,5,True,0.75,True,0.8399999737739563,1000,0.48437767912799606,16,loss
+2,<function <lambda> at 0x7f87c4532840>,100,"(160, 120, 3)",15,30,0.001,100,1,5,1,5,True,0.75,True,0.46193334460258484,1000,8.382130069494247,9,loss
+3,<function <lambda> at 0x7f87a42ceb70>,100,"(160, 120, 3)",5,30,0.001,100,1,5,1,5,True,0.75,True,0.6549999713897705,1000,5.3343513113006615,15,loss

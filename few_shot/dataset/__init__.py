@@ -81,19 +81,21 @@ class FewShotEpisodeGenerator(object):
                  decode_image_tensor(x_q)),
                 tf.one_hot(y_q, self.k_way)
                 )
+        with tf.device('cpu:*'):
+            ds = tf.data.Dataset.from_generator(lambda: self,
+                                                (tf.string, tf.int32, tf.string, tf.int32),
+                                                (tf.TensorShape([self.n_shot * self.k_way]),
+                                                 tf.TensorShape([self.n_shot * self.k_way]),
+                                                 tf.TensorShape([self.q_queries * self.k_way]),
+                                                 tf.TensorShape([self.q_queries * self.k_way])))
 
-        ds = tf.data.Dataset.from_generator(lambda: self,
-                                            (tf.string, tf.int32, tf.string, tf.int32),
-                                            (tf.TensorShape([self.n_shot * self.k_way]),
-                                             tf.TensorShape([self.n_shot * self.k_way]),
-                                             tf.TensorShape([self.q_queries * self.k_way]),
-                                             tf.TensorShape([self.q_queries * self.k_way])))
-
-        ds = ds.map(prepare_outputs,
-                    num_parallel_calls=2)
-
-        if post_transform:
-            ds = ds.map(post_transform,
+            ds = ds.map(prepare_outputs,
                         num_parallel_calls=2)
 
-        return ds.batch(self.batch_size).prefetch(buffer_size=1).make_one_shot_iterator()
+            if post_transform:
+                ds = ds.map(post_transform,
+                            num_parallel_calls=2)
+
+            ds = ds.prefetch(buffer_size=10)
+
+        return ds.prefetch(buffer_size=4).make_one_shot_iterator()
