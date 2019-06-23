@@ -65,7 +65,7 @@ You might need to reduce it if your GPU has less memory.
 - ~data_augmentation_no_early_stopping.py~ lets the data augmentation model run for longer: the randomness in the augmentation might make learning very erratic, especially in the earlier steps. Running it longer might give the model a chance to overcome the extra difficulty added by the augmentation. This results in a measurable improvement over the baseline;
 - ~class_augmentation.py~ increases the number of classes by rotating training images. Since in this project I have used non-square images (as the images in the dataset have a 4:3 proportion), it only handles 0 and 180-degree rotation. It results in a visible improvement over the baseline.
 - ~new_data_augmentation.py~ has another approach to data augmentation. Instead of relying on a handwritten transformation module, it encapsulates a [[https://tfhub.dev/google/image_augmentation/flipx_crop_rotate_color/1][TF hub augmentation module]] in a Keras class. This approach improves accuracy over both the baseline and the previous data augmentation approach.
-- ~class_augmentation_plus_new_augmentation.py~ mixes both kinds of augmentation.
+- ~class_augmentation_plus_new_augmentation.py~ mixes both kinds of augmentation. Surprisingly, it performs worse than the TFHub augmentation by itself.
 - ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt. It currently supports tuning the optimizer (Adam or RMSprop), the learning rate, the number of convolutional blocks, dropout rate, early stopping patience, and using a normal or increased k for training.
 
 *** Results
@@ -86,6 +86,7 @@ The best performing experiment was the one only using the new data augmentation 
 
 **** Class augmentations
 
+- Investigate why the combining class and image augmentation performs worse than image augmentation only.
 - Something like [[https://arxiv.org/abs/1706.00409][Fader Networks]] to generate new classes and samples based on combinations of attributes.
 
 **** Other approaches
