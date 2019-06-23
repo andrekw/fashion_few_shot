@@ -5,7 +5,7 @@ In this repository I will experiment with applying few-shot learning to the [[ht
 ** Setup
 
 You will need Python >= 3.6, pipenv and preferably access to a GPU.
-You can also run the experiments here in the ~kwandre/fashion_few_shot:latest~ docker image
+You can also run the experiments here in the ~kwandre/fashion_few_shot:latest~ docker image.
 Running ~make run~ takes care of downloading and setting up the image.
 
 The dataset should be unzipped to ~datasets/fashion-dataset~, i.e., after extraction you should have a ~datasets/fashion-dataset/images~ folder and a ~datasets/fashion-dataset/styles.csv~ file.
