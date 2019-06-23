@@ -67,7 +67,6 @@ def evaluate_fashion_few_shot(train_df,
     embedding_model = embedding_fn(embedding_input)
     model = build_prototype_network(n_shot,
                                     k_way_train,
-                                    n_queries_train,
                                     img_shape,
                                     augment=augment,
                                     embedding_model_fn=lambda x: embedding_model)
@@ -86,7 +85,6 @@ def evaluate_fashion_few_shot(train_df,
 
     test_model = build_prototype_network(n_shot,
                                          k_way_test,
-                                         n_queries_test,
                                          img_shape,
                                          embedding_model_fn=lambda x: embedding_model)
     test_opt = tf.keras.optimizers.Adam(lr=lr)

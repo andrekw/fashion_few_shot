@@ -81,7 +81,7 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     return -tf.reduce_sum(sq_distance, axis=-1)
 
 
-def build_prototype_network(n_shot: int, k_way: int, n_queries: int, input_shape: Tuple[int, int, int],
+def build_prototype_network(n_shot: int, k_way: int, input_shape: Tuple[int, int, int],
                             embedding_model_fn: Callable[[Layer], Model] = build_embedding_model,
                             augment: bool = False):
     """Builds a prototype network based on an image embedding module.

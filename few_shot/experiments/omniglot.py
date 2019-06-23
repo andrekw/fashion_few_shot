@@ -45,7 +45,6 @@ def run_omniglot_experiment():
 
     model = build_prototype_network(n_shot,
                                     k_way_train,
-                                    n_queries_train,
                                     img_shape,
                                     embedding_model_fn=lambda x: embedding_model)
 
