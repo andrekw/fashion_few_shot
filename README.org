@@ -29,7 +29,7 @@ This takes around 20 minutes to train and evaluate on a GeForce 960.
 *** Fashion data
 
 My first goal was to implement the same model and training strategy as in the miniImageNet experiment in the Protonets paper.
-All experiments were evaluated in 1- and 5-shot, and 5- and 15-way episodes with one query point each.
+All experiments were evaluated in 1- and 5-shot, and 5- and 15-way episodes with one query point per class each.
 Each training episode holds 5 query points per class, meaning we can use all classes with 10 or more samples.
 I have also experimented with 15 queries per class, but rejected that approach since it meant excluding even more classes and samples.
 
@@ -68,7 +68,7 @@ It does not seem to add any noticeable improvement;
 Running it longer might give the model a chance to overcome the extra difficulty added by the augmentation.
 This results in a measurable improvement over the baseline;
 - ~class_augmentation.py~ increases the number of classes by rotating training images.
-Since in this project I have used non-square images (since the images in the dataset have a 4:3 proportion), it only handles 0 and 180-degree rotation.
+Since in this project I have used non-square images (as the images in the dataset have a 4:3 proportion), it only handles 0 and 180-degree rotation.
 It results in a visible improvement over the baseline.
 - ~new_data_augmentation.py~ has another approach to data augmentation.
 Instead of relying on a handwritten transformation module, it encapsulates a [[https://tfhub.dev/google/image_augmentation/flipx_crop_rotate_color/1][TF hub augmentation module]] in a Keras class.
@@ -76,6 +76,9 @@ This approach improves accuracy over both the baseline and the previous data aug
 - ~class_augmentation_plus_new_augmentation.py~ mixes both kinds of augmentation.
 - ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt.
 It currently supports tuning the optimizer (Adam or RMSprop), the learning rate, the number of convolutional blocks, dropout rate, early stopping patience, and using a normal or increased k for training.
+
+*** Results
+
 
 *** To dos
 
