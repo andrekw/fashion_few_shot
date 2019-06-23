@@ -15,29 +15,29 @@ def evaluate_fashion_few_shot(train_df: pd.DataFrame,
                               test_df: pd.DataFrame,
                               n_shot: int,
                               k_way_test: int,
-                              lr: float = config.lr,
+                              k_way_train: int = config.K_WAY_TRAIN,
                               n_queries_train: int = config.N_QUERIES_TRAIN,
                               n_queries_test: int = config.N_QUERIES_TEST,
-                              k_way_train: int = config.K_WAY_TRAIN,
+                              lr: float = config.lr,
                               eps_per_epoch: int = config.EPS_PER_EPOCH,
                               n_epochs: int = config.N_EPOCHS,
                               test_eps: int = config.TEST_EPS,
                               img_shape: Tuple[int, int, int] = config.IMG_SHAPE,
-                              img_pipeline_fn:
-                              Callable[[Tuple[int, int, int]], Callable[[str], tf.Tensor]] = resize_img_pipeline_fn,
-                              patience: int = config.PATIENCE,
-                              opt: tf.keras.optimizers.Optimizer = None,
-                              callbacks: List[tf.keras.callbacks.Callback] = None,
-                              restore_best_weights: bool = True,
                               embedding_fn:
                               Callable[[tf.keras.layers.Layer], tf.keras.models.Model] = build_embedding_model,
-                              reduce_lr_on_plateau: bool = False,
-                              reduction_factor: float = 0.75,
-                              validation_metric: str = 'loss',
+                              augment: bool = False,
+                              img_pipeline_fn:
+                              Callable[[Tuple[int, int, int]], Callable[[str], tf.Tensor]] = resize_img_pipeline_fn,
                               post_processing_fn:
                               Callable[[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor],
                                        Tuple[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]] = None,
-                              augment: bool = False):
+                              opt: tf.keras.optimizers.Optimizer = None,
+                              callbacks: List[tf.keras.callbacks.Callback] = None,
+                              validation_metric: str = 'loss',
+                              patience: int = config.PATIENCE,
+                              restore_best_weights: bool = True,
+                              reduce_lr_on_plateau: bool = False,
+                              reduction_factor: float = 0.75) -> dict:
     """
     Train and evaluates a Prototypical Network on a given dataset.
 
@@ -46,27 +46,28 @@ def evaluate_fashion_few_shot(train_df: pd.DataFrame,
     :param test_df: DataFrame with evaluation rows.
     :param n_shot: Examples per class in the support set.
     :param k_way_test: Number of classes per evaluation episode.
-    :param lr: initial learning rate.
+    :param k_way_train: Number of classes in each evaluation episode.
     :param n_queries_train: Number of examples in the query set for training.
     :param n_queries_test: Number of examples in the query set for validation and evaluation.
-    :param k_way_train: Number of classes in each evaluation episode.
+    :param lr: initial learning rate.
     :param eps_per_epoch: How many episodes to count as an epoch, for validation and scheduling purposes.
     :param n_epochs: Maximum number of epochs to train for.
     :param test_eps: How many episodes to evaluate on.
     :param img_shape: dimensions of each image in the experiment.
-    :param img_pipeline_fn: a function that takes a filename as an input and return an image tensor.
-    :param patience: how many episodes to wait for before stopping early.
-    :param opt: Optimizer to use.
-    :param callbacks: Callbacks for the fit function.
-    :param restore_best_weights: Whether to use best-validated or latest weights after stopping training.
     :param embedding_fn: a function that takes a keras layer as an input and returns an embedding model from that input.
-    :param reduce_lr_on_plateau: Whether to reduce the learning rate if validation loss does not drop.
-    :param reduction_factor: multiplier for the learning rate when at a plateau.
-    :param validation_metric: one of {'loss', 'accuracy'}. Which metric to base early stopping on.
+    :param img_pipeline_fn: a function that takes a filename as an input and return an image tensor.
     :param post_processing_fn: a function to process episode data before training or testing. Used i.e. for class
     augmentation.
+    :param opt: Optimizer to use.
+    :param callbacks: Callbacks for the fit function.
+    :param validation_metric: one of {'loss', 'accuracy'}. Which metric to base early stopping on.
+    :param patience: how many episodes to wait for before stopping early.
+    :param restore_best_weights: Whether to use best-validated or latest weights after stopping training.
+    :param reduce_lr_on_plateau: Whether to reduce the learning rate if validation loss does not drop.
+    :param reduction_factor: multiplier for the learning rate when at a plateau.
     :param augment: Whether to use the TF_hub-based augmentation layer.
-    :return:
+
+    :return: a dictionary containing parameters and results
     """
     args = locals()
     args.pop('train_df')

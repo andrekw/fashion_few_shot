@@ -33,7 +33,7 @@ class AugLayer(tf.keras.layers.Layer):
         return self.augmentation_module(params, signature='from_decoded_images')
 
 
-def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0):
+def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0) -> tf.keras.models.Model:
     """Builds an embedding model as described in the Prototypical Networks paper.
 
     :param input_layer: source keras layer
@@ -54,7 +54,7 @@ def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float =
     return model
 
 
-def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int):
+def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int) -> tf.Tensor:
     """Computes class centroids as the class mean.
 
     :params
@@ -65,7 +65,7 @@ def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int):
     return tf.matmul(support_embedding, support_labels, transpose_a=True) / n_shot
 
 
-def negative_distance(query_embedding: Layer, class_centroids: Layer):
+def negative_distance(query_embedding: Layer, class_centroids: Layer) -> tf.Tensor:
     """Computes the negative squared euclidean distance between each query point and each class centroid."""
 
     # we need to expand the embedding tensor in order for broadcasting to work
@@ -83,7 +83,7 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
 
 def build_prototype_network(n_shot: int, k_way: int, input_shape: Tuple[int, int, int],
                             embedding_model_fn: Callable[[Layer], Model] = build_embedding_model,
-                            augment: bool = False):
+                            augment: bool = False) -> tf.keras.models.Model:
     """Builds a prototype network based on an image embedding module.
 
     :param n_shot: number of shots.

@@ -1,3 +1,5 @@
+import functools
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -10,6 +12,7 @@ N_SAMPLES = 100 * N_CLASSES
 
 
 @pytest.fixture
+@functools.lru_cache(2)
 def df():
     filenames = np.random.random_sample(N_SAMPLES).astype('str')
     classes = np.random.randint(0, N_CLASSES, size=N_SAMPLES)
