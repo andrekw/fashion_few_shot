@@ -58,10 +58,9 @@ def test_centroids(eps_per_batch, n_shot, n_classes, embedding_dims):
 
 @pytest.mark.parametrize('n', [1, 5])
 @pytest.mark.parametrize('k', [5, 60])
-@pytest.mark.parametrize('q', [1, 5])
 @pytest.mark.parametrize('img_shape', [(28, 28, 1), (40, 30, 3)])
-def test_model(n, k, q, img_shape):
-    model = build_prototype_network(n, k, q, img_shape)
+def test_model(n, k, img_shape):
+    model = build_prototype_network(n, k, img_shape)
     opt = tf.keras.optimizers.Adam(lr=1e-3)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 

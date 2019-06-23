@@ -16,6 +16,7 @@ scikit-image = "*"
 scikit-learn = "*"
 jupyter = "*"
 scikit-optimize = "*"
+tensorflow-hub = "*"
 
 [requires]
 python_version = "3.6"

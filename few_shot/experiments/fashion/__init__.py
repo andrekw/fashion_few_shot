@@ -1,5 +1,7 @@
 import sys
+from typing import Tuple, Callable, List
 
+import pandas as pd
 import tensorflow as tf
 
 from . import config
@@ -8,28 +10,65 @@ from few_shot.dataset.image_pipeline import resize_img_pipeline_fn
 from few_shot.model import build_embedding_model, build_prototype_network
 
 
-def evaluate_fashion_few_shot(train_df,
-                              val_df,
-                              test_df,
-                              n_shot,
-                              k_way_test,
-                              lr=config.lr,
-                              n_queries_train=config.N_QUERIES_TRAIN,
-                              n_queries_test=config.N_QUERIES_TEST,
-                              k_way_train=config.K_WAY_TRAIN,
-                              eps_per_epoch=config.EPS_PER_EPOCH,
-                              n_epochs=config.N_EPOCHS,
-                              test_eps=config.TEST_EPS,
-                              img_shape=config.IMG_SHAPE,
-                              img_pipeline_fn=resize_img_pipeline_fn,
-                              patience=config.PATIENCE,
-                              opt=None,
-                              callbacks=None,
-                              restore_best_weights=True,
-                              embedding_fn=build_embedding_model,
-                              reduce_lr_on_plateau=False,
-                              reduction_factor=0.75,
-                              validation_metric='loss'):
+def evaluate_fashion_few_shot(train_df: pd.DataFrame,
+                              val_df: pd.DataFrame,
+                              test_df: pd.DataFrame,
+                              n_shot: int,
+                              k_way_test: int,
+                              k_way_train: int = config.K_WAY_TRAIN,
+                              n_queries_train: int = config.N_QUERIES_TRAIN,
+                              n_queries_test: int = config.N_QUERIES_TEST,
+                              lr: float = config.lr,
+                              eps_per_epoch: int = config.EPS_PER_EPOCH,
+                              n_epochs: int = config.N_EPOCHS,
+                              test_eps: int = config.TEST_EPS,
+                              img_shape: Tuple[int, int, int] = config.IMG_SHAPE,
+                              embedding_fn:
+                              Callable[[tf.keras.layers.Layer], tf.keras.models.Model] = build_embedding_model,
+                              augment: bool = False,
+                              img_pipeline_fn:
+                              Callable[[Tuple[int, int, int]], Callable[[str], tf.Tensor]] = resize_img_pipeline_fn,
+                              post_processing_fn:
+                              Callable[[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor],
+                                       Tuple[Tuple[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]] = None,
+                              opt: tf.keras.optimizers.Optimizer = None,
+                              callbacks: List[tf.keras.callbacks.Callback] = None,
+                              validation_metric: str = 'loss',
+                              patience: int = config.PATIENCE,
+                              restore_best_weights: bool = True,
+                              reduce_lr_on_plateau: bool = False,
+                              reduction_factor: float = 0.75) -> dict:
+    """
+    Train and evaluates a Prototypical Network on a given dataset.
+
+    :param train_df: DataFrame with training rows.
+    :param val_df: DataFrame with validation rows.
+    :param test_df: DataFrame with evaluation rows.
+    :param n_shot: Examples per class in the support set.
+    :param k_way_test: Number of classes per evaluation episode.
+    :param k_way_train: Number of classes in each evaluation episode.
+    :param n_queries_train: Number of examples in the query set for training.
+    :param n_queries_test: Number of examples in the query set for validation and evaluation.
+    :param lr: initial learning rate.
+    :param eps_per_epoch: How many episodes to count as an epoch, for validation and scheduling purposes.
+    :param n_epochs: Maximum number of epochs to train for.
+    :param test_eps: How many episodes to evaluate on.
+    :param img_shape: dimensions of each image in the experiment.
+    :param embedding_fn: a function that takes a keras layer as an input and returns an embedding model from that input.
+    :param img_pipeline_fn: a function that takes a filename as an input and return an image tensor.
+    :param post_processing_fn: a function to process episode data before training or testing. Used i.e. for class
+    augmentation.
+    :param opt: Optimizer to use.
+    :param callbacks: Callbacks for the fit function.
+    :param validation_metric: one of {'loss', 'accuracy'}. Which metric to base early stopping on.
+    :param patience: how many episodes to wait for before stopping early.
+    :param restore_best_weights: Whether to use best-validated or latest weights after stopping training.
+    :param reduce_lr_on_plateau: Whether to reduce the learning rate if validation loss does not drop.
+    :param reduction_factor: multiplier for the learning rate when at a plateau.
+    :param augment: Whether to use the TF_hub-based augmentation layer.
+
+    :return: a dictionary containing parameters and results
+    """
     args = locals()
     args.pop('train_df')
     args.pop('test_df')
@@ -57,15 +96,16 @@ def evaluate_fashion_few_shot(train_df,
                                            k_way_test,
                                            n_queries_test)
 
-    train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape))
+    train_it = train_dataset.tf_iterator(image_pipeline=img_pipeline_fn(img_shape),
+                                         post_transform=post_processing_fn)
     val_it = val_dataset.tf_iterator(image_pipeline=resize_img_pipeline_fn(img_shape))
 
     embedding_input = tf.keras.layers.Input(shape=img_shape)
     embedding_model = embedding_fn(embedding_input)
     model = build_prototype_network(n_shot,
                                     k_way_train,
-                                    n_queries_train,
                                     img_shape,
+                                    augment=augment,
                                     embedding_model_fn=lambda x: embedding_model)
 
     if not opt:
@@ -82,7 +122,6 @@ def evaluate_fashion_few_shot(train_df,
 
     test_model = build_prototype_network(n_shot,
                                          k_way_test,
-                                         n_queries_test,
                                          img_shape,
                                          embedding_model_fn=lambda x: embedding_model)
     test_opt = tf.keras.optimizers.Adam(lr=lr)

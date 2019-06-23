@@ -59,23 +59,13 @@ def few_shot_optimize(train_df,
             raise ValueError('Unsupported k value')
         img_fn = augmented_img_pipeline_fn
 
-        result = evaluate_fashion_few_shot(train_df=experiment_train_df,
-                                           val_df=experiment_val_df,
-                                           test_df=val_df,
-                                           lr=learning_rate,
-                                           n_shot=n_shot,
-                                           n_queries_train=n_queries_train,
-                                           n_queries_test=n_queries_test,
-                                           k_way_train=cur_k_train,
-                                           eps_per_epoch=eps_per_epoch,
-                                           n_epochs=n_epochs,
-                                           k_way_test=k_way_test,
-                                           test_eps=eps_per_epoch,
-                                           img_shape=img_shape,
-                                           opt=optimizer,
-                                           img_pipeline_fn=img_fn,
+        result = evaluate_fashion_few_shot(train_df=experiment_train_df, val_df=experiment_val_df, test_df=val_df,
+                                           n_shot=n_shot, k_way_test=k_way_test, k_way_train=cur_k_train,
+                                           n_queries_train=n_queries_train, n_queries_test=n_queries_test,
+                                           lr=learning_rate, eps_per_epoch=eps_per_epoch, n_epochs=n_epochs,
+                                           test_eps=eps_per_epoch, img_shape=img_shape,
                                            embedding_fn=lambda x: build_embedding_model(x, n_convs, dropout),
-                                           patience=early_stop_patience)
+                                           img_pipeline_fn=img_fn, opt=optimizer, patience=early_stop_patience)
         result['optimizer'] = optimizer_type
 
         return result['test_loss']
@@ -93,22 +83,13 @@ def few_shot_optimize(train_df,
     else:
         raise ValueError('oops')
 
-    result = evaluate_fashion_few_shot(train_df=train_df,
-                                       val_df=val_df,
-                                       test_df=test_df,
-                                       lr=best_lr,
-                                       n_shot=n_shots,
-                                       n_queries_train=n_queries_train,
-                                       n_queries_test=n_queries_test,
-                                       k_way_train=k_way_train if best_k_way_type == 'large' else k_way_test,
-                                       eps_per_epoch=eps_per_epoch,
-                                       n_epochs=n_epochs,
+    result = evaluate_fashion_few_shot(train_df=train_df, val_df=val_df, test_df=test_df, n_shot=n_shots,
                                        k_way_test=k_way_test,
-                                       test_eps=test_eps,
-                                       img_shape=img_shape,
-                                       opt=opt,
-                                       patience=best_patience,
-                                       img_pipeline_fn=augmented_img_pipeline_fn)
+                                       k_way_train=k_way_train if best_k_way_type == 'large' else k_way_test,
+                                       n_queries_train=n_queries_train, n_queries_test=n_queries_test, lr=best_lr,
+                                       eps_per_epoch=eps_per_epoch, n_epochs=n_epochs, test_eps=test_eps,
+                                       img_shape=img_shape, img_pipeline_fn=augmented_img_pipeline_fn, opt=opt,
+                                       patience=best_patience)
     result['opt'] = best_opt
 
     return result

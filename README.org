@@ -4,7 +4,9 @@ In this repository I will experiment with applying few-shot learning to the [[ht
 
 ** Setup
 
-You will need Python >= 3.6, pipenv and preferably access to a GPU. 
+You will need Python >= 3.6, pipenv and preferably access to a GPU.
+You can also run the experiments here in the ~kwandre/fashion_few_shot:latest~ docker image.
+Running ~make run~ takes care of downloading and setting up the image.
 
 The dataset should be unzipped to ~datasets/fashion-dataset~, i.e., after extraction you should have a ~datasets/fashion-dataset/images~ folder and a ~datasets/fashion-dataset/styles.csv~ file.
 I've had corruption errors when uncompressing the dataset on CentOS.
@@ -27,7 +29,7 @@ This takes around 20 minutes to train and evaluate on a GeForce 960.
 *** Fashion data
 
 My first goal was to implement the same model and training strategy as in the miniImageNet experiment in the Protonets paper.
-All experiments were evaluated in 1- and 5-shot, and 5- and 15-way episodes.
+All experiments were evaluated in 1- and 5-shot, and 5- and 15-way episodes with one query point per class each.
 Each training episode holds 5 query points per class, meaning we can use all classes with 10 or more samples.
 I have also experimented with 15 queries per class, but rejected that approach since it meant excluding even more classes and samples.
 
@@ -38,7 +40,8 @@ The module ~few_shot.dataset.fashion~ has helper functions for building few-shot
 ~TRAINING_CLASSES~ and ~TEST_CLASSES~ contain a random split of all classes with more than 10 examples for training and testing.
 The convenience function ~fashion_dfs~ builds train, validation and test sets.
 The validation set is composed of 16 random classes from the training set.
-~few_shot.dataset.FewShotEpisodeGenerator~ takes one of these DataFrames, handles loading and processing images, and yields batches of episodes.
+~few_shot.dataset.FewShotEpisodeGenerator~ takes one of these DataFrames, handles loading and processing images, and yields a sequence of episodes.
+Its ~tf_iterator()~ method handles converting these sequences of file names and class values into a tensorflow iterator of (support images, support classes, query_images), query classes tuples.
 
 **** Image pipeline
 
@@ -49,36 +52,45 @@ It translates, rotates, scales, flips horizontally, changes brightness randomly 
 
 **** Run experiments
 
-The module ~few_shot.experiments.fashion~ contains the experiments I've ran. Each submodule is a different experiment with different settings. ~few_shot.experiments.fashion.config~ contains default settings.
+The module ~few_shot.experiments.fashion~ contains the experiments I've ran.
+Each submodule is a different experiment with different settings.
+~few_shot.experiments.fashion.config~ contains default settings.
+The module ~few_shot.experiments.fashion.config~ contains the default values for all parameters.
+Of special note is the ~IMG_SHAPE~ tuple, which defines the size of images we train and evaluate on. 
+Its default value was tuned for loading 30-way, 5-shot, 5 query points episodes to a Tesla K80 (which has 11GB of RAM).
+You might need to reduce it if your GPU has less memory.
 
-- ~default_params.py~ follows the training procedure from the paper: a 4-convolutional-block model trained with Adam and early stopping.
-This is the baseline;
-- ~data_augmentation.py~ adds data augmentation to the procedure above.
-It does not seem to add any noticeable improvement;
-- ~data_augmentation_no_early_stopping.py~ lets the data augmentation model run for longer: the randomness in the augmentation might make learning very erratic, especially in the earlier steps.
-Running it lower might give the model a chance to overcome the extra difficulty added by the augmentation.
-This results in a measurable improvement over the baseline;
-- ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt.
-It currently supports tuning the optimizer (Adam or RMSprop), the learning rate, the number of convolutional blocks, dropout rate, early stopping patience, and using a normal or increased k for training.
+- ~default_params.py~ follows the training procedure from the paper: a 4-convolutional-block model trained with Adam and early stopping. This is the baseline;
+- ~data_augmentation.py~ adds data augmentation to the procedure above. It does not seem to add any noticeable improvement;
+- ~data_augmentation_no_early_stopping.py~ lets the data augmentation model run for longer: the randomness in the augmentation might make learning very erratic, especially in the earlier steps. Running it longer might give the model a chance to overcome the extra difficulty added by the augmentation. This results in a measurable improvement over the baseline;
+- ~class_augmentation.py~ increases the number of classes by rotating training images. Since in this project I have used non-square images (as the images in the dataset have a 4:3 proportion), it only handles 0 and 180-degree rotation. It results in a visible improvement over the baseline.
+- ~new_data_augmentation.py~ has another approach to data augmentation. Instead of relying on a handwritten transformation module, it encapsulates a [[https://tfhub.dev/google/image_augmentation/flipx_crop_rotate_color/1][TF hub augmentation module]] in a Keras class. This approach improves accuracy over both the baseline and the previous data augmentation approach.
+- ~class_augmentation_plus_new_augmentation.py~ mixes both kinds of augmentation. Surprisingly, it performs worse than the TFHub augmentation by itself.
+- ~hyperparameter_search.py~ performs Bayesian Optimization on the model hyperparameters using scikit-opt. It currently supports tuning the optimizer (Adam or RMSprop), the learning rate, the number of convolutional blocks, dropout rate, early stopping patience, and using a normal or increased k for training.
+
+*** Results
+
+The best performing experiment was the one only using the new data augmentation format. 
+
+| *SHOT* | *WAY* | *ACCURACY* |
+|      5 |    15 |     0.7546 |
+|      5 |     5 |     0.8762 |
+|      1 |    15 |     0.5481 |
+|      1 |     5 |     0.7180 |
 
 *** To dos
 
-**** Tuning image augmentation
-
-Right now the rotation leaves black corners in the images, and all operations are done on final-sized images.
-Cleaning up this process might make augmentation even more beneficial.
-
 **** Hyperparameter search
 
-- This takes a very long time to run, I haven't had enough time to let it go through enough iterations to make it worthwhile.
-I'd estimate it'd need at least 50 runs to see any benefit.
+- This takes a very long time to run, I haven't had enough time to let it go through enough iterations to make it worthwhile. I'd estimate it'd need at least 50 runs to see any benefit.
 
 **** Class augmentations
 
-- Try upside-down images as new classes for training (like it's done for Omniglot in the paper);
+- Investigate why the combining class and image augmentation performs worse than image augmentation only.
 - Something like [[https://arxiv.org/abs/1706.00409][Fader Networks]] to generate new classes and samples based on combinations of attributes.
 
 **** Other approaches
 
 - Matching networks
-- Model-agnostic Meta-Learning
+- [[https://arxiv.org/abs/1812.02391][Meta-Transfer Learning for Few-Shot Learning]]
+

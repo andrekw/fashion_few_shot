@@ -59,3 +59,31 @@ def resize_img_pipeline_fn(img_shape):
         return tf.image.resize_image_with_pad(img, *img_shape[:-1])
 
     return resize_img_pipeline
+
+
+def class_augmentation_fn(k, p=0.5):
+    """Randomly flips a class' images upside down.
+    :param k: number of classes.
+    :param p: probability of flipping a class.
+    """
+
+    def class_augmentation(input_tuple, qy):
+        """Augments a dataset by creating new classes by randomly rotating each class by 180 degrees.
+        :param input_tuple: (support_x, support_y, query_x) tuple
+        :param qy: one-hot encoded query labels tensor.
+        """
+        sx, sy, qx = input_tuple
+
+        flip_p = tf.random.uniform([k])
+
+        sx_flip_p = tf.gather(flip_p, tf.argmax(sy, axis=-1))
+
+        sx = tf.where(sx_flip_p < p, tf.image.rot90(sx, k=2), sx)
+
+        qx_flip_p = tf.gather(flip_p, tf.argmax(qy, axis=-1))
+
+        qx = tf.where(qx_flip_p < p, tf.image.rot90(qx, k=2), qx)
+
+        return (sx, sy, qx), qy
+
+    return class_augmentation

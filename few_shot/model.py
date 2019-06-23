@@ -1,4 +1,8 @@
+from typing import Tuple, Callable
+
 import tensorflow as tf
+import tensorflow.contrib.image
+import tensorflow_hub as hub
 
 from tensorflow.keras.layers import (Conv2D, BatchNormalization, ReLU, MaxPooling2D,
                                      Input, Flatten, Lambda, Softmax, Layer, SpatialDropout2D)
@@ -10,8 +14,32 @@ K_WAY = 60
 N_QUERIES = 5
 
 
-def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0):
-    """Builds an embedding model as described in the Prototypical Networks paper."""
+class AugLayer(tf.keras.layers.Layer):
+    def __init__(self, output_dim, **kwargs):
+        self.output_dim = output_dim
+        super(AugLayer, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.augmentation_module = hub.Module(
+            'https://tfhub.dev/google/image_augmentation/flipx_crop_rotate_color/1')
+        super(AugLayer, self).build(input_shape)
+
+    def call(self, x, training=None):
+        params = {
+            'images': x,
+            'image_size': self.output_dim,
+            'augmentation': bool(training)
+        }
+        return self.augmentation_module(params, signature='from_decoded_images')
+
+
+def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0) -> tf.keras.models.Model:
+    """Builds an embedding model as described in the Prototypical Networks paper.
+
+    :param input_layer: source keras layer
+    :param n_convs: number of convolution blocks to generate
+    :param dropout: dropout probability. Disables dropout if set to 0 or False.
+    """
     embedding = input_layer  # need to keep a reference to the input
     for _ in range(n_convs):
         embedding = Conv2D(64, 3, data_format='channels_last', padding='same')(embedding)
@@ -26,7 +54,7 @@ def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float =
     return model
 
 
-def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int):
+def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int) -> tf.Tensor:
     """Computes class centroids as the class mean.
 
     :params
@@ -37,7 +65,7 @@ def centroids(support_embedding: Layer, support_labels: Layer, n_shot: int):
     return tf.matmul(support_embedding, support_labels, transpose_a=True) / n_shot
 
 
-def negative_distance(query_embedding: Layer, class_centroids: Layer):
+def negative_distance(query_embedding: Layer, class_centroids: Layer) -> tf.Tensor:
     """Computes the negative squared euclidean distance between each query point and each class centroid."""
 
     # we need to expand the embedding tensor in order for broadcasting to work
@@ -53,9 +81,22 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     return -tf.reduce_sum(sq_distance, axis=-1)
 
 
-def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model):
-    """Builds a prototype network based on an image embedding module."""
+def build_prototype_network(n_shot: int, k_way: int, input_shape: Tuple[int, int, int],
+                            embedding_model_fn: Callable[[Layer], Model] = build_embedding_model,
+                            augment: bool = False) -> tf.keras.models.Model:
+    """Builds a prototype network based on an image embedding module.
+
+    :param n_shot: number of shots.
+    :param k_way: number of classes in episode.
+    :param input_shape: a (height, width, channels) tuple describing the shape of images.
+    :param embedding_model_fn: a callable that takes a keras layer as an input and returns a model that outputs
+    a dense output from that input.
+    :param augment: whether to use the TFhub augmentation layer.
+    """
     embedding_in = Input(shape=input_shape)
+    if augment:
+        aug_layer = AugLayer(input_shape[:-1])
+        embedding_in = aug_layer(embedding_in)
     embedding_model = embedding_model_fn(embedding_in)
 
     support_in = Input(shape=input_shape, name='support_input')

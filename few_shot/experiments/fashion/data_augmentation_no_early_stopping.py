@@ -19,14 +19,9 @@ if __name__ == '__main__':
     for n_shots, k_way_test in itertools.product(config.SHOTS, config.TEST_K_WAY):
         print(f'Running fashion experiment {n_shots}-shot, {k_way_test} way')
         assert k_way_test <= test_df.class_name.nunique()
-        result = evaluate_fashion_few_shot(train_df=train_df,
-                                           val_df=val_df,
-                                           test_df=test_df,
-                                           n_shot=n_shots,
-                                           k_way_test=k_way_test,
-                                           img_pipeline_fn=augmented_img_pipeline_fn,
-                                           patience=40,
-                                           restore_best_weights=True)
+        result = evaluate_fashion_few_shot(train_df=train_df, val_df=val_df, test_df=test_df, n_shot=n_shots,
+                                           k_way_test=k_way_test, img_pipeline_fn=augmented_img_pipeline_fn,
+                                           patience=40, restore_best_weights=True)
 
         results.append(result)
 
