@@ -26,7 +26,7 @@ class AugLayer(tf.keras.layers.Layer):
         params = {
             'images': x,
             'image_size': self.output_dim,
-            'augmentation': bool(True)
+            'augmentation': bool(training)
         }
         return self.augmentation_module(params, signature='from_decoded_images')
 
