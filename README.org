@@ -79,6 +79,13 @@ It currently supports tuning the optimizer (Adam or RMSprop), the learning rate,
 
 *** Results
 
+The best performing experiment was the one only using the new data augmentation format. 
+
+| SHOT | WAY | ACCURACY |
+|    5 |  15 |   0.7546 |
+|    5 |   5 |   0.8762 |
+|    1 |  15 |   0.5481 |
+|    1 |   5 |   0.7180 |
 
 *** To dos
 
