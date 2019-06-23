@@ -1,3 +1,5 @@
+from typing import Tuple, Callable
+
 import tensorflow as tf
 import tensorflow.contrib.image
 import tensorflow_hub as hub
@@ -32,7 +34,12 @@ class AugLayer(tf.keras.layers.Layer):
 
 
 def build_embedding_model(input_layer: Layer, n_convs: int = 4, dropout: float = 0.0):
-    """Builds an embedding model as described in the Prototypical Networks paper."""
+    """Builds an embedding model as described in the Prototypical Networks paper.
+
+    :param input_layer: source keras layer
+    :param n_convs: number of convolution blocks to generate
+    :param dropout: dropout probability. Disables dropout if set to 0 or False.
+    """
     embedding = input_layer  # need to keep a reference to the input
     for _ in range(n_convs):
         embedding = Conv2D(64, 3, data_format='channels_last', padding='same')(embedding)
@@ -74,9 +81,18 @@ def negative_distance(query_embedding: Layer, class_centroids: Layer):
     return -tf.reduce_sum(sq_distance, axis=-1)
 
 
-def build_prototype_network(n_shot, k_way, n_queries, input_shape, embedding_model_fn=build_embedding_model,
-                            augment=False):
-    """Builds a prototype network based on an image embedding module."""
+def build_prototype_network(n_shot: int, k_way: int, n_queries: int, input_shape: Tuple[int, int, int],
+                            embedding_model_fn: Callable[[Layer], Model] = build_embedding_model,
+                            augment: bool = False):
+    """Builds a prototype network based on an image embedding module.
+
+    :param n_shot: number of shots.
+    :param k_way: number of classes in episode.
+    :param input_shape: a (height, width, channels) tuple describing the shape of images.
+    :param embedding_model_fn: a callable that takes a keras layer as an input and returns a model that outputs
+    a dense output from that input.
+    :param augment: whether to use the TFhub augmentation layer.
+    """
     embedding_in = Input(shape=input_shape)
     if augment:
         aug_layer = AugLayer(input_shape[:-1])
